@@ -11,6 +11,7 @@ using NEWMAT::ColumnVector;
 using NEWMAT::Matrix;
 using NEWMAT::SymmetricMatrix;
 using namespace OPTPP;
+using namespace std;
 
 extern "C" {
 void init_hs14(int ndim, ColumnVector& x)

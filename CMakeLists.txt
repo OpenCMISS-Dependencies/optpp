@@ -1,18 +1,24 @@
 cmake_minimum_required(VERSION 2.6)
-#project(optpp)
-project(optpp C CXX Fortran)
+project(optpp C CXX)
 
-include(FortranCInterface)
+option(USE_NPSOL "Do you want to use the npsol library?" OFF)
+if(USE_NPSOL)
+  find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
+endif(USE_NPSOL)
 
-find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
 include_directories(
   ${optpp_SOURCE_DIR}/include
   ${optpp_SOURCE_DIR}/newmat11)
 
-find_package(BLAS)
-if(BLAS_FOUND)
-  set(HAVE_BLAS TRUE)
-endif()
+option(USE_BLAS "Do you want to use the BLAS external libs?" OFF)
+if(USE_BLAS)
+  enable_language(Fortran)
+  include(FortranCInterface)
+  find_package(BLAS)
+  if(BLAS_FOUND)
+    set(HAVE_BLAS TRUE)
+  endif()
+endif(USE_BLAS)
 
 if(NOT BUILT_BY_ACRO)
   option(USE_MPI "Should OPTPP use MPI?" OFF)
@@ -70,9 +76,66 @@ configure_file(
   ${optpp_BINARY_DIR}/config/OPT++_config.h
 )
 include_directories(${optpp_BINARY_DIR}/config)
-add_definitions(-DHAVE_CONFIG_H)
+add_definitions(-DHAVE_OPTPP_CONFIG_H)
+
+INSTALL(FILES ${CMAKE_BINARY_DIR}/config/OPT++_config.h
+	DESTINATION include/optpp
+)
+
+SET(CMAKE_DEBUG_POSTFIX "d")
+IF( WIN32 )
+   # What is the equivalent for WIN32?
+ELSE ( WIN32 )
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+ENDIF ( WIN32 )
 
 add_subdirectory(newmat11)
 add_subdirectory(src)
-enable_testing()
-add_subdirectory(tests)
+#enable_testing()
+#add_subdirectory(tests)
+
+# install the header files
+SET(OPT_INCLUDES
+  include/abbrev_copyright.h    include/AppLauncher.h       
+  include/Appl_Data.h           include/Appl_Data_NPSOL.h   
+  include/BoolVector.h          include/BoundConstraint.h   
+  include/cblas.h               include/CGProblem.h         
+  include/common.h              include/CompoundConstraint.h
+  include/ConstraintBase.h      include/Constraint.h        
+  include/GenSetBase.h          include/GenSetBox2d.h       
+  include/GenSet.h              include/GenSetMin.h         
+  include/GenSetStd.h           include/globals.h           
+  include/ioformat.h            include/LinearConstraint.h  
+  include/LinearEquation.h      include/LinearInequality.h  
+  include/LSQNLF.h              include/NewtonProblem.h     
+  include/NIPSProblem.h         include/NLFAPP.h            
+  include/NLF.h                 include/NLP0.h              
+  include/NLP1.h                include/NLP2.h              
+  include/NLPBase.h             include/NLP.h               
+  include/NonLinearConstraint.h include/NonLinearEquation.h 
+  include/NonLinearInequality.h include/NPSOLProblem.h      
+  include/OptBaNewton.h         include/OptBaQNewton.h      
+  include/OptBCEllipsoid.h      include/OptBCFDNewton.h     
+  include/OptBCNewton.h         include/OptBCNewtonLike.h   
+  include/OptBCQNewton.h        include/OptCG.h             
+  include/OptConstrFDNewton.h   include/OptConstrNewton.h   
+  include/OptConstrNewtonLike.h include/OptConstrQNewton.h  
+  include/OptDHNIPS.h           include/OptDirect.h         
+  include/OptFDNewton.h         include/OptFDNIPS.h         
+  include/OptGSS.h              include/Opt.h               
+  include/OptLBFGS.h            include/OptNewton.h         
+  include/OptNewtonLike.h       include/OptNIPS.h           
+  include/OptNIPSLike.h         include/OptNPSOL.h          
+  include/Opt_PARAMS.h          include/OptPDS.h            
+  include/OptppArray.h          include/OptppExceptions.h   
+  include/OptppFatalError.h     include/OptppSmartPtr.h     
+  include/OptQNewton.h          include/OptQNIPS.h          
+  include/pds.h                 include/PDSProblem.h        
+  include/Problem.h             include/proto.h             
+  include/TOLS.h                include/VariableList.h
+)
+
+INSTALL(FILES ${OPT_INCLUDES}
+	DESTINATION include/optpp
+)

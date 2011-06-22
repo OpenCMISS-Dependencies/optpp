@@ -4,3 +4,7 @@ add_library(constraints
   NonLinearInequality.C
 )
 target_link_libraries(constraints utils)
+
+INSTALL(TARGETS constraints
+	ARCHIVE DESTINATION lib/optpp
+)

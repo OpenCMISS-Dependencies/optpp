@@ -6,6 +6,7 @@ using NEWMAT::ColumnVector;
 using NEWMAT::SymmetricMatrix;
 
 using namespace OPTPP;
+using namespace std;
 
 /* Example file to demonstrate the calling sequence to a 
  * simple NLF1 function

@@ -11,6 +11,10 @@
 #include "precisio.h"
 #include "ioformat.h"
 
+#ifdef _MSC_VER
+  #define copysign _copysign
+#endif
+
 using namespace std;
 using NEWMAT::ColumnVector;
 using NEWMAT::Matrix;

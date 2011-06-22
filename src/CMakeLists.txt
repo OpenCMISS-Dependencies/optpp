@@ -10,3 +10,7 @@ target_link_libraries(opt base constraints gss newton pds utils)
 set_target_properties(opt PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
+  
+INSTALL(TARGETS opt
+	ARCHIVE DESTINATION lib/optpp
+)

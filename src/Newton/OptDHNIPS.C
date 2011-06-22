@@ -5,7 +5,7 @@
 // Last Modified 01/29/2004 
 //------------------------------------------------------------------------
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 

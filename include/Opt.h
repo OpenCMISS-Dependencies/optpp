@@ -9,7 +9,7 @@
  J.C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
  ----------------------------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 
@@ -133,7 +133,7 @@ protected:
   /// What method is being used
   char method[80];  
   /// Optional message
-  char mesg[80];    
+  char mesg[128];    
   /// Return code from Optimization class
   int  ret_code;    
   /// Number of iterations taken 
@@ -217,8 +217,8 @@ public:
  */
   OptimizeClass(): x_optout_fd(-1), dim(0), debug_(0), trace(0) {
     optout = new std::ostream(&file_buffer);
-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
-    if (!file_buffer.is_open() || !optout->good()) {
+    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
       std::cout << "OptimizeClass:: Can't open default output file\n";
       optout_fd = 0;
     }
@@ -232,8 +232,8 @@ public:
   OptimizeClass(int n): x_optout_fd(-1), dim(n), sx(n), sfx(n), xprev(n),
     fcn_evals(0), backtracks(0), debug_(0), trace(0)      {
     optout = new std::ostream(&file_buffer);
-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
-    if (!file_buffer.is_open() || !optout->good()) {
+    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
       std::cout << "OptimizeClass:: Can't open default output file\n";
       optout_fd = 0;
     }
@@ -247,8 +247,8 @@ public:
  */
   OptimizeClass(TOLS t): x_optout_fd(-1), dim(0), tol(t), debug_(0), trace(0){
     optout = new std::ostream(&file_buffer);
-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
-    if (!file_buffer.is_open() || !optout->good()) {
+    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
       std::cout << "OptimizeClass:: Can't open default output file\n";
       optout_fd = 0;
     }
@@ -263,8 +263,8 @@ public:
   OptimizeClass(int n, TOLS t): x_optout_fd(-1), dim(n), tol(t), sx(n),sfx(n),
       xprev(n), fcn_evals(0), backtracks(0), debug_(0), trace(0){
     optout = new std::ostream(&file_buffer);
-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
-    if (!file_buffer.is_open() || !optout->good()) {
+    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
       std::cout << "OptimizeClass:: Can't open default output file\n";
       optout_fd = 0;
     }

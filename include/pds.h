@@ -2,7 +2,7 @@
 #ifndef PDS_INC
 #define PDS_INC
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 

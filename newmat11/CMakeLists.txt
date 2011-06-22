@@ -7,3 +7,17 @@ add_library(newmat
 set_target_properties(newmat PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
+  
+INSTALL(TARGETS newmat
+	ARCHIVE DESTINATION lib/optpp
+)
+
+# install the header files
+SET(NEWMAT_INCLUDES controlw.h    include.h       myexcept.h
+                  newmatap.h    newmat.h        newmatio.h
+                  newmatnl.h    newmatrc.h      newmatrm.h
+                  precisio.h    solution.h      tmt.h)
+
+INSTALL(FILES ${NEWMAT_INCLUDES}
+	DESTINATION include/optpp
+)

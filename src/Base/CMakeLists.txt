@@ -9,3 +9,7 @@ if(MPI_FOUND)
   list(APPEND base_libs ${MPI_LIBRARY})
 endif()
 target_link_libraries(base ${base_libs})
+
+INSTALL(TARGETS base
+	ARCHIVE DESTINATION lib/optpp
+)

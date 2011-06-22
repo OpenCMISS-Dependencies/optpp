@@ -10,6 +10,10 @@
 #else
 #define F77_FUNC@FortranCInterface_GLOBAL_MACRO@
 #endif
+#else
+#ifndef F77_FUNC
+#define F77_FUNC(name,NAME) name
+#endif
 #endif
 
 /* Define to 1 if you have the `gettimeofday' function. */

@@ -23,3 +23,7 @@ if(HAVE_SYS_TIME_H)
 endif()
 
 add_library(utils ${libutils_srcs})
+
+INSTALL(TARGETS utils
+	ARCHIVE DESTINATION lib/optpp
+)

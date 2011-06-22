@@ -7,7 +7,15 @@
  */
 
 #include <sys/types.h>
-#include <unistd.h>
+#ifdef _MSC_VER
+  #include <io.h>
+  #define S_IRUSR   S_IREAD
+  #define S_IWUSR   S_IWRITE
+  #define open _open
+  #define close _close
+#else
+  #include <unistd.h>
+#endif
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>

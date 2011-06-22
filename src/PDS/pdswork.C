@@ -1,5 +1,5 @@
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 
@@ -26,7 +26,7 @@
 using namespace std;
 using NEWMAT::ColumnVector;
 
-extern struct pdscon pdscon;
+extern "C" struct pdscon pdscon;
 extern struct conbcmni conbcmni;
 
 namespace OPTPP {

@@ -5,7 +5,7 @@
 // meza@california.sandia.gov
 //----------------------------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 
@@ -64,8 +64,8 @@ double get_cpu_time()
 #else
     FILETIME creationTime,kernTime,userTime,exitTime;
     HANDLE process = GetCurrentProcess();
-    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
     SYSTEMTIME sysTime;
+    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
     FileTimeToSystemTime(&userTime,&sysTime);
     time = (double)sysTime.wSecond + (double)sysTime.wMilliseconds * 0.001;
 #endif
@@ -74,6 +74,23 @@ double get_cpu_time()
 **  End get_cpu_time.
 */
 }
+
+
+/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
+#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
+
+int gettimeofday (struct timeval *tv, void* tz)
+{
+  FILETIME ft;
+  __int64 ns100 = 0;
+  GetSystemTimeAsFileTime (&ft);
+  ns100 = (__int64)ft.dwHighDateTime << 32 | ft.dwLowDateTime;
+  tv->tv_usec = (long) ((ns100 / 10LL) % 1000000LL);
+  tv->tv_sec = (long) ((ns100 - 116444736000000000LL) / 10000000LL);
+  return (0);
+}
+
+#endif
 
 double get_wall_clock_time()
 {
@@ -99,9 +116,9 @@ double get_wall_clock_time()
 ** *******************************************************************/
 
     double time;
-#ifdef HAVE_SYS_TIME_H
+//#ifdef HAVE_SYS_TIME_H
     struct timeval tp;
-#endif
+//#endif
 
 /*
 **  Begin get_wall_clock_time.
@@ -117,18 +134,3 @@ double get_wall_clock_time()
 */
 }
 
-/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
-#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
-int gettimeofday (struct timeval *tv, void* tz)
-{
-  union {
-    __int64 ns100; /*time since 1 Jan 1601 in 100ns units */
-    FILETIME ft;
-  } now;
-
-  GetSystemTimeAsFileTime (&now.ft);
-  tv->tv_usec = (long) ((now.ns100 / 10LL) % 1000000LL);
-  tv->tv_sec = (long) ((now.ns100 - 116444736000000000LL) / 10000000LL);
-  return (0);
-}
-#endif

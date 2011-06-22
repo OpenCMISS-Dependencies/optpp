@@ -8,7 +8,7 @@
  J. C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
  ----------------------------------------------------------------------*/
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 

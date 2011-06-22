@@ -16,3 +16,7 @@ if(BLAS_FOUND)
 endif(BLAS_FOUND)
 
 target_link_libraries(pds ${pds_libs})
+
+INSTALL(TARGETS pds
+	ARCHIVE DESTINATION lib/optpp
+)

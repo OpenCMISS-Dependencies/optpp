@@ -5,7 +5,7 @@
 // Last Modified December 2000
 //------------------------------------------------------------------------
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_OPTPP_CONFIG_H
 #include "OPT++_config.h"
 #endif
 
@@ -21,6 +21,10 @@
 #include "OptFDNIPS.h"
 #include "precisio.h"
 #include "cblas.h"
+
+#ifdef _MSC_VER
+  #define copysign _copysign
+#endif
 
 using NEWMAT::Real;
 using NEWMAT::FloatingPointPrecision;
