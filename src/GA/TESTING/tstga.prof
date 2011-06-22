@@ -1,0 +1,61 @@
+-------------------------------------------------------------------------------
+Profile listing generated Wed Mar 22 15:31:16 1995
+    with:	prof tstga 
+-------------------------------------------------------------------------------
+
+samples   time    CPU    FPU   Clock   N-cpu  S-interval Countsize
+   1655    17s  R4400  R4010 150.0MHz   1     10.0ms     2(bytes)
+
+Each sample covers 4 bytes for every 10.0ms ( 0.06% of 16.5500sec)
+
+
+-------------------------------------------------------------------------------
+  -p[rocedures] using pc-sampling.
+  Sorted in descending order by the number of samples in each procedure.
+  Unexecuted procedures are excluded.
+-------------------------------------------------------------------------------
+
+samples   time(%)      cum time(%)      procedure (file)
+
+    698     7s( 42.2)    7s( 42.2) GA_loop__FP4NLP0P11parm_structP10populationT3P7bestpopT5P8__file_si (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/ga.C)
+    231   2.3s( 14.0)  9.3s( 56.1)        _doprnt (libc.so.1:doprnt.c)
+     82  0.82s(  5.0)   10s( 61.1)            qst (libc.so.1:qsort.c)
+     76  0.76s(  4.6)   11s( 65.7) select_pop_roulette (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     66  0.66s(  4.0)   12s( 69.7)          e_vdw (tstga:polymer.c)
+     57  0.57s(  3.4)   12s( 73.1)         _write (libc.so.1:write.s)
+     52  0.52s(  3.1)   13s( 76.3)          qsort (libc.so.1:qsort.c)
+     38  0.38s(  2.3)   13s( 78.5)       best_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     35  0.35s(  2.1)   13s( 80.7)  crossover_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     35  0.35s(  2.1)   14s( 82.8)        fprintf (libc.so.1:fprintf.c)
+     28  0.28s(  1.7)   14s( 84.5)  str_to_double (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     28  0.28s(  1.7)   14s( 86.2)         memcpy (libc.so.1:bcopy.s)
+     28  0.28s(  1.7)   15s( 87.9)         degray (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     18  0.18s(  1.1)   15s( 88.9)           ran3 (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     17  0.17s(  1.0)   15s( 90.0)       vec_mult (tstga:vector.c)
+     15  0.15s(  0.9)   15s( 90.9)     print_best (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     14  0.14s(  0.8)   15s( 91.7)          _open (libc.so.1:open.s)
+     14  0.14s(  0.8)   15s( 92.6)        e_total (tstga:polymer.c)
+     13  0.13s(  0.8)   15s( 93.4)       vec_diff (tstga:vector.c)
+     12  0.12s(  0.7)   16s( 94.1)          _dtoa (libc.so.1:dtoa.s)
+     11  0.11s(  0.7)   16s( 94.7)      print_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+     11  0.11s(  0.7)   16s( 95.4) statistics_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      9  0.09s(  0.5)   16s( 96.0)     mutate_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      8  0.08s(  0.5)   16s( 96.4)      crossover (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      7  0.07s(  0.4)   16s( 96.9)          GAran (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      6  0.06s(  0.4)   16s( 97.2)         filter (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      6  0.06s(  0.4)   16s( 97.6)         e_bond (tstga:polymer.c)
+      6  0.06s(  0.4)   16s( 97.9)       _dwmultu (libc.so.1:tenscale.s)
+      5  0.05s(  0.3)   16s( 98.2)            sin (libm.so:trig.s)
+      4  0.04s(  0.2)   16s( 98.5)         _close (libc.so.1:close.s)
+      4  0.04s(  0.2)   16s( 98.7)          _fcvt (libc.so.1:ecvt.c)
+      3  0.03s(  0.2)   16s( 98.9)   make_polymer (tstga:polymer.c)
+      3  0.03s(  0.2)   16s( 99.1)     vec_length (tstga:vector.c)
+      3  0.03s(  0.2)   16s( 99.3)      _tenscale (libc.so.1:tenscale.s)
+      2  0.02s(  0.1)   16s( 99.4)            cos (libm.so:trig.s)
+      2  0.02s(  0.1)   16s( 99.5) initialize_pop (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      1  0.01s(  0.1)   16s( 99.6) initialize_best (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/pga_util.c)
+      1  0.01s(  0.1)   16s( 99.6)       _findiop (libc.so.1:flush.c)
+      1  0.01s(  0.1)   17s( 99.7)         memchr (libc.so.1:memchr.c)
+      1  0.01s(  0.1)   17s( 99.8) EvalF__6GANLF0FR12ColumnVector (tstga:/net/home/meza/OPT/C++/opt++/libopt/GA/ga.C)
+
+   1655    17s(100.0)   17s(100.0)          TOTAL

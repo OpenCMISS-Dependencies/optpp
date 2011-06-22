@@ -1,0 +1,37 @@
+#!/bin/csh -f
+#########################################################################
+#
+#	aimk -- OPT archictecture independent make script.
+#
+#	Automatically sets OPT_ROOT, OPT_ARCH and then
+#       invokes the archictecture-dependent makefiles.
+#
+#########################################################################
+
+#	See if OPT_ROOT is defined or not and try to assign a value
+#       for OPT_ROOT.
+
+if ($?OPT_ROOT == 0) then
+	if (-d $HOME/opt++) then
+		set OPT_ROOT = $HOME/opt++
+	else
+		echo "aimk: OPT_ROOT not defined"
+		exit 1
+	endif
+endif
+
+#	If OPT_ARCH is not defined, then invoke getarch to see if
+#       it can determine this system's architecture.  If getarch
+#       fails, then emit an error message and exit.
+
+if ($?OPT_ARCH == 0) then
+	set OPT_ARCH = `$OPT_ROOT/util/getarch`
+	if ("$OPT_ARCH" == "") then
+		echo "aimk: getarch failed, cannot determine architecture"
+		exit 1
+	endif
+endif
+
+# 	Now invoke the proper makefile to do the rest of the work.
+
+	cd $OPT_ARCH; make $1 OPT_ROOT=$OPT_ROOT OPT_ARCH=$OPT_ARCH

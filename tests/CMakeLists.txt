@@ -1,0 +1,17 @@
+set(test_libs opt newmat) 
+if(npsol_lib)
+  list(APPEND test_libs ${npsol_lib}) 
+endif()
+if(BLAS_FOUND)
+  list(APPEND test_libs ${BLAS_LIBRARIES}) 
+endif()
+
+add_subdirectory(constraints)
+add_subdirectory(hock)
+add_subdirectory(parallel)
+add_subdirectory(uncon)
+add_subdirectory(xml)
+
+if(npsol_lib)
+  add_subdirectory(npsol)
+endif()

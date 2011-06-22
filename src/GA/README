@@ -1,0 +1,160 @@
+
+
+                   Introduction to pga
+			1/95
+
+This is a brief introduction to pga, a general purpose Genetic
+Algorithm package developed at the Center for Computational
+Engineering at Sandia National Labs in Livermore, California.
+
+To compile, type "make pga", then type "pga" to run
+
+To add your own fitness function, do the following, assuming that
+your function is named my_eval.
+
+1. Edit eval.c
+
+2. Add the function to the bottom of this file. It should have the form
+
+double my_eval(int n,double* params) 
+{
+   double fitness;
+
+   ...
+
+   return fitness;
+}
+
+3. Add the prototype in eval.h ...
+
+   double my_eval(int,double*); 
+
+4. In eval.c, in eval_user() add the lines as in the sample below, 
+
+  else if(!strcmp(f,"my_eval"))
+    fitness=my_eval(n,params);
+
+5. Recompile
+
+6. Change the first line in GAin.dat to my_eval
+
+7. Set the number and range of parameters at the bottom of GAin.dat
+
+8. run pga
+
+The code is standard C developed on a Silocon Graphics platform.
+pga reads an input file called GAin.dat, described below and 
+produces a file GAout.dat.
+
+The best parameter sets found so far are in GAbest_i_.dat
+where _i_ is the index of the niche or subpopulation.
+
+GAin.dat - This file contains information on GA parameters. 
+	   An example is given below. 
+	   NOTE THAT THE NAME OF THIS FILE MUST NOT BE CHANGED.
+
+------------------------------ cut here ---------------------------
+eval1 - name of eval function in eval.h
+0 Restart flag
+1 Number of niches
+100 Population
+100 Generations
+0  selection method
+4 Number of niche interactions
+20
+40
+60
+80
+1 Print flag
+10 Nbest
+123456789 MSEED
+1 Save frequency
+0.40 Selection rate
+0.04 Mutation rate
+0.80 Convergence threshold
+0.90 Crossover rate
+10 Number of GA variables
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+10  1  -10.0 10.0
+------------------------------ cut here ---------------------------
+
+All text to the right of the parameters is ignored.
+
+LINE 0 - name of the evaluation function
+
+LINE 1 - restart flag. Restart(=1), Start new(=0)
+
+LINE 2 - Number of niches. The GA method being used is a variant of
+	 Muehlenbein's  breeding GA in which there are several independent
+	 sub-populations evolving which periodically pass good individuals
+	 back and forth. 
+
+LINE 3 - Population size - number of individuals in each population.
+	 Currnet max is 1000 (change in pga.h)
+
+LINE 4 - Number of generations.
+
+LINE 5 - Selection flag. (=1) Use roulette wheel selection, (=0)
+	 use step function selection
+
+LINE 6 - Number of times during the course of the evolution that the 
+	  niches interact. This line is followed by that many lines giving the 
+	  generation at which the niche interaction occur.
+
+LINE 7 - Print flag - tells when to print results to GAout. (=1) print 
+	  all generations, else only if niching.
+
+LINE 8 - Number of best individuals kept. Usually set this to the 
+	  population size.
+
+LINE 9 - random number seed.
+
+LINE 10 - save frequency - Populations are saved ever save freq. generations.
+
+LINE 11 - Selection rate whne individuals are selected for breeding using
+	  a step function. If the save frequency is f, the best f*popsize 
+	  individuals have equal chance of mating while the worst (1-f)*npop 
+	  individuals are totally excluded from the breeding population.
+
+LINE 12 - Mutation rate. Muehlenbein suggests that this be 1/nwords.
+
+LINE 13 - convergence threshold - this is just a diagnostic.
+
+LINE 14 - crossover rate - the fraction of the population that
+          experiences crossover each generation.
+
+LINE 15 - Number of parameters. This is ND, and there will follow
+	  ND lines that read : 
+
+
+	10	1	   -10.0	  10.0    
+
+	Where ...
+	10 is the number of bits describing the user variable
+	1 indicates that the parameter is a float; 0 that it is an int
+	-10.0, 10.0 are the limits on the parameter's value.
+
+/*------------------------------------------------------------------------
+c  Copyright (C) 1994
+c
+c  Author:
+c
+c  Richard Judson       
+c  rsjuds@ca.sandia.gov  
+c  (510)294-1438           
+c  FAX (510)294-2234
+c
+c  Center for Computational Engineering
+c  Sandia National Laboratories, MS 9214
+c  P.O. Box 969
+c  Livermore, CA 94551-0969
+c
+c-----------------------------------------------------------------------

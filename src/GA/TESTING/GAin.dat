@@ -1,0 +1,43 @@
+eval_cart  evaluation function
+0 Restart flag
+4 Number of niches
+20 Population
+20 Generations
+1  selection method
+0 Number of niche interactions
+1 Print flag
+100 Nbest
+123456789 MSEED
+1 Save frequency
+0.40   Selection rate
+0.001 Mutation rate
+0.80   Convergence threshold
+0.60   Crossover rate
+17 Number of GA variables
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+10 1 0.0 6.28
+
