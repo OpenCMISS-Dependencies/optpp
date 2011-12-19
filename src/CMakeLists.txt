@@ -1,3 +1,7 @@
+if(WIN32)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif(WIN32)
+
 add_subdirectory(Base)
 add_subdirectory(Constraints)
 add_subdirectory(GSS)

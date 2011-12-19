@@ -1,0 +1,103 @@
+diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/include/NLF.h
+--- ./include/NLF.h	2010-12-21 14:51:01.000000000 +1300
++++ /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/include/NLF.h	2011-12-15 15:02:47.014412700 +1300
+@@ -87,16 +87,16 @@
+   NLF0(int ndim): 
+      NLP0(ndim), init_flag(false) {;}
+   NLF0(int ndim, USERFCN0 f): 
+-     NLP0(ndim), fcn(f), fcn_v(f_helper), init_flag(false), vptr(this) {;}
++     NLP0(ndim), fcn(f), fcn_v(f_helper), init_flag(false) {vptr = this;}
+   NLF0(int ndim, USERFCN0 f, INITFCN i, CompoundConstraint* constraint = 0):
+      NLP0(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
+-     init_flag(false), vptr(this) {;}
++     init_flag(false) {vptr = this;}
+   NLF0(int ndim, USERFCN0 f, INITFCN i, INITCONFCN c):
+      NLP0(ndim), fcn(f), fcn_v(f_helper),init_fcn(i), init_confcn(c), 
+-     init_flag(false), vptr(this) 
+-     {constraint_ = init_confcn(ndim);}
++     init_flag(false)
++     {vptr = this; constraint_ = init_confcn(ndim);}
+   NLF0(int ndim, int nlncons, USERNLNCON0 f, INITFCN i):
+-     NLP0(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this) {;}
++     NLP0(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false) {vptr = this;}
+   /// Alternate function pointers with user-supplied void function pointer
+   NLF0(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
+      NLP0(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
+@@ -189,15 +189,15 @@
+      NLP1(ndim), init_flag(false) {;}
+   NLF1(int ndim, USERFCN1 f, INITFCN i, CompoundConstraint* constraint = 0):
+      NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
+-     init_flag(false), vptr(this)
+-     {analytic_grad = 1;}
++     init_flag(false)
++     {vptr = this; analytic_grad = 1;}
+   NLF1(int ndim, USERFCN1 f, INITFCN i, INITCONFCN c):
+      NLP1(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
+-     init_flag(false), vptr(this)
+-     {analytic_grad = 1; constraint_ = init_confcn(ndim);}
++     init_flag(false)
++     {vptr = this; analytic_grad = 1; constraint_ = init_confcn(ndim);}
+   NLF1(int ndim, int nlncons, USERNLNCON1 f, INITFCN i):
+-     NLP1(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this)
+-     {analytic_grad = 1;}
++     NLP1(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false)
++     {vptr = this; analytic_grad = 1;}
+   /// Alternate function pointers with user-supplied void function pointer
+   NLF1(int ndim, USERFCN1V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
+      NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
+@@ -293,17 +293,17 @@
+      NLP2(ndim), init_flag(false) {;}
+   NLF2(int ndim, USERFCN2 f, INITFCN i, CompoundConstraint* constraint = 0):
+      NLP2(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
+-     init_flag(false), vptr(this) {;}
++     init_flag(false) {vptr = this;}
+   NLF2(int ndim, USERFCN2 f, INITFCN i, INITCONFCN c):
+      NLP2(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
+-     init_flag(false), vptr(this)
+-     {constraint_ = init_confcn(ndim);}
++     init_flag(false)
++     {vptr = this; constraint_ = init_confcn(ndim);}
+   NLF2(int ndim, int nlncons, USERNLNCON1 f, INITFCN i):
+      NLP2(ndim, nlncons), confcn1(f), confcn2(NULL), init_fcn(i), 
+-     init_flag(false), vptr(this) {;}
++     init_flag(false) {vptr = this;}
+   NLF2(int ndim, int nlncons, USERNLNCON2 f, INITFCN i):
+      NLP2(ndim, nlncons), confcn1(NULL), confcn2(f), init_fcn(i), 
+-     init_flag(false), vptr(this) {;}
++     init_flag(false) {vptr = this;}
+   /// Alternate function pointers with user-supplied void function pointer
+   NLF2(int ndim, USERFCN2V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
+      NLP2(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
+@@ -404,15 +404,15 @@
+      NLP1(ndim), init_flag(false) {;}
+   FDNLF1(int ndim, USERFCN0 f, INITFCN i, CompoundConstraint* constraint = 0): 
+     NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
+-    init_flag(false), vptr(this)
+-    { analytic_grad = 0;}
++    init_flag(false)
++     {vptr = this;  analytic_grad = 0;}
+   FDNLF1(int ndim, USERFCN0 f, INITFCN i, INITCONFCN c): 
+     NLP1(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
+-    init_flag(false), vptr(this)
+-    { analytic_grad = 0; constraint_ = init_confcn(ndim);}
++    init_flag(false)
++     {vptr = this;  analytic_grad = 0; constraint_ = init_confcn(ndim);}
+   FDNLF1(int ndim, int nlncons, USERNLNCON0 f, INITFCN i):
+-    NLP1(ndim, nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this)
+-    { analytic_grad = 0;}
++    NLP1(ndim, nlncons), confcn(f), init_fcn(i), init_flag(false)
++     {vptr = this; analytic_grad = 0;}
+   /// Alternate function pointers with user-supplied void function pointer
+   FDNLF1(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
+      NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
+diff -BurN -X ../ig.f ./src/CMakeLists.txt /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/src/CMakeLists.txt
+--- ./src/CMakeLists.txt	2011-06-23 00:01:59.000000000 +1200
++++ /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/src/CMakeLists.txt	2011-12-15 15:06:08.828955900 +1300
+@@ -1,3 +1,7 @@
++if(WIN32)
++  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
++endif(WIN32)
++
+ add_subdirectory(Base)
+ add_subdirectory(Constraints)
+ add_subdirectory(GSS)
