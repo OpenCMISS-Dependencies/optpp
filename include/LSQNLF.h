@@ -97,9 +97,10 @@ public:
     NLP2(ndim), fcn0(0), fcn0_v(0), fcn1(0), fcn1_v(0), confcn(0),
     init_fcn(0), init_confcn(0), init_flag(false), Jacobian_current(false), 
     lsqterms_(lsqterms), fvector(lsqterms), 
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
      {
+	 vptr = this;
 	 fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	 SpecFlag = Spec1;
      }
@@ -108,9 +109,10 @@ public:
     NLP2(ndim, constraint), fcn0(f), fcn0_v(f0_helper), fcn1(0), fcn1_v(0), 
     confcn(0), init_fcn(i), init_confcn(0), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(),
     tempF(lsqterms), specLSQF(lsqterms)
-    { 
+    {
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = Spec1;
     }
@@ -119,9 +121,10 @@ public:
     NLP2(ndim, constraint), fcn0(0), fcn0_v(0), fcn1(f), fcn1_v(f1_helper), 
     confcn(0), init_fcn(i), init_confcn(0), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
-    { 
+    {
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = Spec1;
     }
@@ -129,9 +132,10 @@ public:
     NLP2(ndim), fcn0(f), fcn0_v(f0_helper), fcn1(0), fcn1_v(0), 
     confcn(0), init_fcn(i), init_confcn(c), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = Spec1;
     }
@@ -139,9 +143,10 @@ public:
     NLP2(ndim), fcn0(0), fcn0_v(0), fcn1(f), fcn1_v(f1_helper), 
     confcn(0), init_fcn(i), init_confcn(c), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = Spec1;
     }
@@ -175,9 +180,10 @@ public:
     NLP2(ndim), fcn0(0), fcn0_v(0), fcn1(0), fcn1_v(0), confcn(0),
     init_fcn(0), init_confcn(0), init_flag(false), Jacobian_current(false), 
     lsqterms_(lsqterms), fvector(lsqterms), 
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
      {
+	vptr = this;
 	 fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	 SpecFlag = NoSpec;
      }
@@ -186,9 +192,10 @@ public:
     NLP2(ndim, constraint), fcn0(f), fcn0_v(f0_helper), fcn1(0), fcn1_v(0), 
     confcn(0), init_fcn(i), init_confcn(0), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = NoSpec;
     }
@@ -197,9 +204,10 @@ public:
     NLP2(ndim, constraint), fcn0(0), fcn0_v(0), fcn1(f), fcn1_v(f1_helper), 
     confcn(0), init_fcn(i), init_confcn(0), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = NoSpec;
     }
@@ -207,7 +215,7 @@ public:
     NLP2(ndim), fcn0(f), fcn0_v(f0_helper), fcn1(0), fcn1_v(0), 
     confcn(0), init_fcn(i), init_confcn(c), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
@@ -217,9 +225,10 @@ public:
     NLP2(ndim), fcn0(0), fcn0_v(0), fcn1(f), fcn1_v(f1_helper), 
     confcn(0), init_fcn(i), init_confcn(c), init_flag(false), 
     Jacobian_current(false), lsqterms_(lsqterms), fvector(lsqterms),
-    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(this),
+    Jacobian_(lsqterms,ndim), partial_jac(lsqterms,ndim), vptr(0),
     tempF(lsqterms), specLSQF(lsqterms)
     { 
+	vptr = this;
 	fvector = 1.0e30;  Jacobian_ = 1.0e30; tempF = 1.0e30;
 	SpecFlag = NoSpec;
     }

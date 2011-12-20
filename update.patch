@@ -1,7 +1,260 @@
-diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/include/NLF.h
---- ./include/NLF.h	2010-12-21 14:51:01.000000000 +1300
-+++ /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/include/NLF.h	2011-12-15 15:02:47.014412700 +1300
-@@ -87,16 +87,16 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ccbc22d..2d91ff6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,18 +1,24 @@
+ cmake_minimum_required(VERSION 2.6)
+-#project(optpp)
+-project(optpp C CXX Fortran)
++project(optpp C CXX)
+ 
+-include(FortranCInterface)
++option(USE_NPSOL "Do you want to use the npsol library?" OFF)
++if(USE_NPSOL)
++  find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
++endif(USE_NPSOL)
+ 
+-find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
+ include_directories(
+   ${optpp_SOURCE_DIR}/include
+   ${optpp_SOURCE_DIR}/newmat11)
+ 
+-find_package(BLAS)
+-if(BLAS_FOUND)
+-  set(HAVE_BLAS TRUE)
+-endif()
++option(USE_BLAS "Do you want to use the BLAS external libs?" OFF)
++if(USE_BLAS)
++  enable_language(Fortran)
++  include(FortranCInterface)
++  find_package(BLAS)
++  if(BLAS_FOUND)
++    set(HAVE_BLAS TRUE)
++  endif()
++endif(USE_BLAS)
+ 
+ if(NOT BUILT_BY_ACRO)
+   option(USE_MPI "Should OPTPP use MPI?" OFF)
+@@ -70,9 +76,66 @@ configure_file(
+   ${optpp_BINARY_DIR}/config/OPT++_config.h
+ )
+ include_directories(${optpp_BINARY_DIR}/config)
+-add_definitions(-DHAVE_CONFIG_H)
++add_definitions(-DHAVE_OPTPP_CONFIG_H)
++
++INSTALL(FILES ${CMAKE_BINARY_DIR}/config/OPT++_config.h
++	DESTINATION include/optpp
++)
++
++SET(CMAKE_DEBUG_POSTFIX "d")
++IF( WIN32 )
++   # What is the equivalent for WIN32?
++ELSE ( WIN32 )
++   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
++   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
++ENDIF ( WIN32 )
+ 
+ add_subdirectory(newmat11)
+ add_subdirectory(src)
+-enable_testing()
+-add_subdirectory(tests)
++#enable_testing()
++#add_subdirectory(tests)
++
++# install the header files
++SET(OPT_INCLUDES
++  include/abbrev_copyright.h    include/AppLauncher.h       
++  include/Appl_Data.h           include/Appl_Data_NPSOL.h   
++  include/BoolVector.h          include/BoundConstraint.h   
++  include/cblas.h               include/CGProblem.h         
++  include/common.h              include/CompoundConstraint.h
++  include/ConstraintBase.h      include/Constraint.h        
++  include/GenSetBase.h          include/GenSetBox2d.h       
++  include/GenSet.h              include/GenSetMin.h         
++  include/GenSetStd.h           include/globals.h           
++  include/ioformat.h            include/LinearConstraint.h  
++  include/LinearEquation.h      include/LinearInequality.h  
++  include/LSQNLF.h              include/NewtonProblem.h     
++  include/NIPSProblem.h         include/NLFAPP.h            
++  include/NLF.h                 include/NLP0.h              
++  include/NLP1.h                include/NLP2.h              
++  include/NLPBase.h             include/NLP.h               
++  include/NonLinearConstraint.h include/NonLinearEquation.h 
++  include/NonLinearInequality.h include/NPSOLProblem.h      
++  include/OptBaNewton.h         include/OptBaQNewton.h      
++  include/OptBCEllipsoid.h      include/OptBCFDNewton.h     
++  include/OptBCNewton.h         include/OptBCNewtonLike.h   
++  include/OptBCQNewton.h        include/OptCG.h             
++  include/OptConstrFDNewton.h   include/OptConstrNewton.h   
++  include/OptConstrNewtonLike.h include/OptConstrQNewton.h  
++  include/OptDHNIPS.h           include/OptDirect.h         
++  include/OptFDNewton.h         include/OptFDNIPS.h         
++  include/OptGSS.h              include/Opt.h               
++  include/OptLBFGS.h            include/OptNewton.h         
++  include/OptNewtonLike.h       include/OptNIPS.h           
++  include/OptNIPSLike.h         include/OptNPSOL.h          
++  include/Opt_PARAMS.h          include/OptPDS.h            
++  include/OptppArray.h          include/OptppExceptions.h   
++  include/OptppFatalError.h     include/OptppSmartPtr.h     
++  include/OptQNewton.h          include/OptQNIPS.h          
++  include/pds.h                 include/PDSProblem.h        
++  include/Problem.h             include/proto.h             
++  include/TOLS.h                include/VariableList.h
++)
++
++INSTALL(FILES ${OPT_INCLUDES}
++	DESTINATION include/optpp
++)
+diff --git a/config/OPT++_config_cmake.h.in b/config/OPT++_config_cmake.h.in
+index 2a94666..7a03037 100644
+--- a/config/OPT++_config_cmake.h.in
++++ b/config/OPT++_config_cmake.h.in
+@@ -10,6 +10,10 @@
+ #else
+ #define F77_FUNC@FortranCInterface_GLOBAL_MACRO@
+ #endif
++#else
++#ifndef F77_FUNC
++#define F77_FUNC(name,NAME) name
++#endif
+ #endif
+ 
+ /* Define to 1 if you have the `gettimeofday' function. */
+diff --git a/docs/guide/tstgss.html b/docs/guide/tstgss.html
+index 58cdf79..e5b8466 100644
+--- a/docs/guide/tstgss.html
++++ b/docs/guide/tstgss.html
+@@ -21,7 +21,7 @@ and only if the program is compiled with the MPI flag.
+  <table>
+  <tr><td> 
+ \code 
+-    #ifdef HAVE_CONFIG_H
++    #ifdef HAVE_OPTPP_CONFIG_H
+     #include "OPT++_config.h"
+     #endif
+ 
+diff --git a/docs/guide/tstnpsol.html b/docs/guide/tstnpsol.html
+index 99e6fae..bd79c71 100644
+--- a/docs/guide/tstnpsol.html
++++ b/docs/guide/tstnpsol.html
+@@ -8,7 +8,7 @@ bound vectors have dimension <em> n + nclin + ncnln </em>.
+ <hr />
+ 
+ \code
+-   #ifdef HAVE_CONFIG_H
++   #ifdef HAVE_OPTPP_CONFIG_H
+    #include "OPT++_config.h"
+    #endif
+ 
+diff --git a/docs/guide/tstpds.html b/docs/guide/tstpds.html
+index e2253d2..ab29b27 100644
+--- a/docs/guide/tstpds.html
++++ b/docs/guide/tstpds.html
+@@ -17,7 +17,7 @@ First, include the header files and subroutine declarations.
+ <tr><td>
+ \code
+ 
+-   #ifdef HAVE_CONFIG_H
++   #ifdef HAVE_OPTPP_CONFIG_H
+    #include "OPT++_config.h"
+    #endif
+ 
+diff --git a/docs/guide/tsttrpds.html b/docs/guide/tsttrpds.html
+index 27e7b5f..18e8719 100644
+--- a/docs/guide/tsttrpds.html
++++ b/docs/guide/tsttrpds.html
+@@ -16,7 +16,7 @@ First, include the header files and subroutine declarations.
+ <table>
+ <tr><td>
+ \code
+-   #ifdef HAVE_CONFIG_H
++   #ifdef HAVE_OPTPP_CONFIG_H
+    #include "OPT++_config.h"
+    #endif
+ 
+diff --git a/include/AppLauncher.h b/include/AppLauncher.h
+index 581186e..593a3a8 100644
+--- a/include/AppLauncher.h
++++ b/include/AppLauncher.h
+@@ -1,7 +1,7 @@
+ #ifndef APPLAUNCHER_H
+ #define APPLAUNCHER_H
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/Appl_Data.h b/include/Appl_Data.h
+index 0360daa..68cfa34 100644
+--- a/include/Appl_Data.h
++++ b/include/Appl_Data.h
+@@ -7,7 +7,7 @@
+   work by or on behalf of the U.S. Government.
+  ----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/Appl_Data_NPSOL.h b/include/Appl_Data_NPSOL.h
+index c8a4fc9..160240b 100644
+--- a/include/Appl_Data_NPSOL.h
++++ b/include/Appl_Data_NPSOL.h
+@@ -7,7 +7,7 @@
+   work by or on behalf of the U.S. Government.
+  --------------------------------------------------------------------- */
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/BoolVector.h b/include/BoolVector.h
+index 188f46d..b03df47 100644
+--- a/include/BoolVector.h
++++ b/include/BoolVector.h
+@@ -1,7 +1,7 @@
+ #ifndef bcv_h
+ #define bcv_h
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/GenSetBase.h b/include/GenSetBase.h
+index 25e30b8..11f4f43 100644
+--- a/include/GenSetBase.h
++++ b/include/GenSetBase.h
+@@ -10,7 +10,7 @@
+  Lawrence Berkeley National Laboratory
+  ------------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/LSQNLF.h b/include/LSQNLF.h
+index c6186fa..0a381b0 100644
+--- a/include/LSQNLF.h
++++ b/include/LSQNLF.h
+@@ -8,7 +8,7 @@
+  J. C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
+  ----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/NLF.h b/include/NLF.h
+index dfba7fd..d07f36d 100644
+--- a/include/NLF.h
++++ b/include/NLF.h
+@@ -87,16 +87,16 @@ public:
    NLF0(int ndim): 
       NLP0(ndim), init_flag(false) {;}
    NLF0(int ndim, USERFCN0 f): 
@@ -23,7 +276,7 @@ diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_
    /// Alternate function pointers with user-supplied void function pointer
    NLF0(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
       NLP0(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
-@@ -189,15 +189,15 @@
+@@ -189,15 +189,15 @@ public:
       NLP1(ndim), init_flag(false) {;}
    NLF1(int ndim, USERFCN1 f, INITFCN i, CompoundConstraint* constraint = 0):
       NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
@@ -45,7 +298,7 @@ diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_
    /// Alternate function pointers with user-supplied void function pointer
    NLF1(int ndim, USERFCN1V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
       NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
-@@ -293,17 +293,17 @@
+@@ -293,17 +293,17 @@ public:
       NLP2(ndim), init_flag(false) {;}
    NLF2(int ndim, USERFCN2 f, INITFCN i, CompoundConstraint* constraint = 0):
       NLP2(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
@@ -68,7 +321,7 @@ diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_
    /// Alternate function pointers with user-supplied void function pointer
    NLF2(int ndim, USERFCN2V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
       NLP2(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
-@@ -404,15 +404,15 @@
+@@ -404,15 +404,15 @@ public:
       NLP1(ndim), init_flag(false) {;}
    FDNLF1(int ndim, USERFCN0 f, INITFCN i, CompoundConstraint* constraint = 0): 
      NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
@@ -90,9 +343,351 @@ diff -BurN -X ../ig.f ./include/NLF.h /mnt/ddrive/development/cmiss/build/third_
    /// Alternate function pointers with user-supplied void function pointer
    FDNLF1(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
       NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
-diff -BurN -X ../ig.f ./src/CMakeLists.txt /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/src/CMakeLists.txt
---- ./src/CMakeLists.txt	2011-06-23 00:01:59.000000000 +1200
-+++ /mnt/ddrive/development/cmiss/build/third_party_debug/src/opt++/src/CMakeLists.txt	2011-12-15 15:06:08.828955900 +1300
+diff --git a/include/NLP0.h b/include/NLP0.h
+index 5c8665d..65f44e2 100644
+--- a/include/NLP0.h
++++ b/include/NLP0.h
+@@ -1,7 +1,7 @@
+ #ifndef NLP0_h
+ #define NLP0_h
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/NLPBase.h b/include/NLPBase.h
+index 86e028f..873e39d 100644
+--- a/include/NLPBase.h
++++ b/include/NLPBase.h
+@@ -9,7 +9,7 @@
+  P.J. Williams, Sandia National Laboratories, pwillia@sandia.gov
+  ----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/NonLinearConstraint.h b/include/NonLinearConstraint.h
+index 1eb5c41..90fce30 100644
+--- a/include/NonLinearConstraint.h
++++ b/include/NonLinearConstraint.h
+@@ -9,7 +9,7 @@
+  P.J. Williams, Sandia National Laboratories, pwillia@sandia.gov
+  ----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/Opt.h b/include/Opt.h
+index 867e361..c74584f 100644
+--- a/include/Opt.h
++++ b/include/Opt.h
+@@ -9,7 +9,7 @@
+  J.C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
+  ----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -133,7 +133,7 @@ protected:
+   /// What method is being used
+   char method[80];  
+   /// Optional message
+-  char mesg[80];    
++  char mesg[128];    
+   /// Return code from Optimization class
+   int  ret_code;    
+   /// Number of iterations taken 
+@@ -217,8 +217,8 @@ public:
+  */
+   OptimizeClass(): x_optout_fd(-1), dim(0), debug_(0), trace(0) {
+     optout = new std::ostream(&file_buffer);
+-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
+-    if (!file_buffer.is_open() || !optout->good()) {
++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
+       std::cout << "OptimizeClass:: Can't open default output file\n";
+       optout_fd = 0;
+     }
+@@ -232,8 +232,8 @@ public:
+   OptimizeClass(int n): x_optout_fd(-1), dim(n), sx(n), sfx(n), xprev(n),
+     fcn_evals(0), backtracks(0), debug_(0), trace(0)      {
+     optout = new std::ostream(&file_buffer);
+-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
+-    if (!file_buffer.is_open() || !optout->good()) {
++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
+       std::cout << "OptimizeClass:: Can't open default output file\n";
+       optout_fd = 0;
+     }
+@@ -247,8 +247,8 @@ public:
+  */
+   OptimizeClass(TOLS t): x_optout_fd(-1), dim(0), tol(t), debug_(0), trace(0){
+     optout = new std::ostream(&file_buffer);
+-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
+-    if (!file_buffer.is_open() || !optout->good()) {
++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
+       std::cout << "OptimizeClass:: Can't open default output file\n";
+       optout_fd = 0;
+     }
+@@ -263,8 +263,8 @@ public:
+   OptimizeClass(int n, TOLS t): x_optout_fd(-1), dim(n), tol(t), sx(n),sfx(n),
+       xprev(n), fcn_evals(0), backtracks(0), debug_(0), trace(0){
+     optout = new std::ostream(&file_buffer);
+-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
+-    if (!file_buffer.is_open() || !optout->good()) {
++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
+       std::cout << "OptimizeClass:: Can't open default output file\n";
+       optout_fd = 0;
+     }
+diff --git a/include/OptGSS.h b/include/OptGSS.h
+index b88d3ed..d31d184 100644
+--- a/include/OptGSS.h
++++ b/include/OptGSS.h
+@@ -11,7 +11,7 @@
+   *
+   */
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/OptPDS.h b/include/OptPDS.h
+index a2a586f..19aa8da 100644
+--- a/include/OptPDS.h
++++ b/include/OptPDS.h
+@@ -6,7 +6,7 @@
+  J.C. Meza, Sandia National Laboratories meza@california.sandia.gov
+  ------------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/Problem.h b/include/Problem.h
+index c895ed7..a71a786 100644
+--- a/include/Problem.h
++++ b/include/Problem.h
+@@ -1,7 +1,7 @@
+ #ifndef PROBLEM_H
+ #define PROBLEM_H
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/VariableList.h b/include/VariableList.h
+index 09b286a..49e524d 100644
+--- a/include/VariableList.h
++++ b/include/VariableList.h
+@@ -1,7 +1,7 @@
+ #ifndef VARIABLELIST_H
+ #define VARIABLELIST_H
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/globals.h b/include/globals.h
+index 0c823a3..a73696f 100644
+--- a/include/globals.h
++++ b/include/globals.h
+@@ -9,7 +9,7 @@
+  J. C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
+  -----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/include/pds.h b/include/pds.h
+index fbe1101..6a48278 100644
+--- a/include/pds.h
++++ b/include/pds.h
+@@ -2,7 +2,7 @@
+ #ifndef PDS_INC
+ #define PDS_INC
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/newmat11/CMakeLists.txt b/newmat11/CMakeLists.txt
+index 77b523b..5cba9b1 100644
+--- a/newmat11/CMakeLists.txt
++++ b/newmat11/CMakeLists.txt
+@@ -7,3 +7,17 @@ add_library(newmat
+ set_target_properties(newmat PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
+   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
++  
++INSTALL(TARGETS newmat
++	ARCHIVE DESTINATION lib/optpp
++)
++
++# install the header files
++SET(NEWMAT_INCLUDES controlw.h    include.h       myexcept.h
++                  newmatap.h    newmat.h        newmatio.h
++                  newmatnl.h    newmatrc.h      newmatrm.h
++                  precisio.h    solution.h      tmt.h)
++
++INSTALL(FILES ${NEWMAT_INCLUDES}
++	DESTINATION include/optpp
++)
+diff --git a/newmat11/include.h b/newmat11/include.h
+index 03f72a6..2b9d2c5 100644
+--- a/newmat11/include.h
++++ b/newmat11/include.h
+@@ -3,7 +3,7 @@
+ #ifndef NEWMAT_INCLUDE_H
+ #define NEWMAT_INCLUDE_H
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Base/CMakeLists.txt b/src/Base/CMakeLists.txt
+index 1bf42da..2ad7645 100644
+--- a/src/Base/CMakeLists.txt
++++ b/src/Base/CMakeLists.txt
+@@ -9,3 +9,7 @@ if(MPI_FOUND)
+   list(APPEND base_libs ${MPI_LIBRARY})
+ endif()
+ target_link_libraries(base ${base_libs})
++
++INSTALL(TARGETS base
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/Base/LSQNLF.C b/src/Base/LSQNLF.C
+index 53b5319..3a272a8 100644
+--- a/src/Base/LSQNLF.C
++++ b/src/Base/LSQNLF.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -17,6 +17,10 @@
+ 
+ #include "LSQNLF.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using namespace std;
+ using NEWMAT::ColumnVector;
+ using NEWMAT::Matrix;
+diff --git a/src/Base/NLF0.C b/src/Base/NLF0.C
+index be0e2dd..4bdbf9e 100644
+--- a/src/Base/NLF0.C
++++ b/src/Base/NLF0.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Base/NLP0.C b/src/Base/NLP0.C
+index 2d785be..9d15a77 100644
+--- a/src/Base/NLP0.C
++++ b/src/Base/NLP0.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -26,6 +26,10 @@
+ #include "cblas.h"
+ #include "ioformat.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using namespace std;
+ 
+ using NEWMAT::Real;
+diff --git a/src/Base/NLP1.C b/src/Base/NLP1.C
+index bc5f9ed..8653045 100644
+--- a/src/Base/NLP1.C
++++ b/src/Base/NLP1.C
+@@ -11,6 +11,10 @@
+ #include "precisio.h"
+ #include "ioformat.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using namespace std;
+ using NEWMAT::ColumnVector;
+ using NEWMAT::Matrix;
+diff --git a/src/Base/TOLS.C b/src/Base/TOLS.C
+index f411046..cdd2100 100644
+--- a/src/Base/TOLS.C
++++ b/src/Base/TOLS.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Base/backtrack.C b/src/Base/backtrack.C
+index 83c470d..d651c67 100644
+--- a/src/Base/backtrack.C
++++ b/src/Base/backtrack.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -17,6 +17,10 @@
+ 
+ #include "Opt.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using NEWMAT::ColumnVector;
+ 
+ const   int MAXITER = 20;
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 011e630..4ac3af8 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
 @@ -1,3 +1,7 @@
 +if(WIN32)
 +  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -101,3 +696,2573 @@ diff -BurN -X ../ig.f ./src/CMakeLists.txt /mnt/ddrive/development/cmiss/build/t
  add_subdirectory(Base)
  add_subdirectory(Constraints)
  add_subdirectory(GSS)
+@@ -10,3 +14,7 @@ target_link_libraries(opt base constraints gss newton pds utils)
+ set_target_properties(opt PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
+   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
++  
++INSTALL(TARGETS opt
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/Constraints/CMakeLists.txt b/src/Constraints/CMakeLists.txt
+index 0604293..7c997d4 100644
+--- a/src/Constraints/CMakeLists.txt
++++ b/src/Constraints/CMakeLists.txt
+@@ -4,3 +4,7 @@ add_library(constraints
+   NonLinearInequality.C
+ )
+ target_link_libraries(constraints utils)
++
++INSTALL(TARGETS constraints
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/Constraints/NonLinearConstraint.C b/src/Constraints/NonLinearConstraint.C
+index 0b62fe0..eba2526 100644
+--- a/src/Constraints/NonLinearConstraint.C
++++ b/src/Constraints/NonLinearConstraint.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/GSS/CMakeLists.txt b/src/GSS/CMakeLists.txt
+index 091e345..668cb8a 100644
+--- a/src/GSS/CMakeLists.txt
++++ b/src/GSS/CMakeLists.txt
+@@ -1 +1,5 @@
+ add_library(gss GenSetBase.C GenSetBox2d.C GenSetMin.C GenSetStd.C OptGSS.C ../globals.C)
++
++INSTALL(TARGETS gss
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/GSS/OptGSS.C b/src/GSS/OptGSS.C
+index b58d7ee..d71109e 100644
+--- a/src/GSS/OptGSS.C
++++ b/src/GSS/OptGSS.C
+@@ -4,7 +4,7 @@
+ // raoliva@lbl.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/CMakeLists.txt b/src/Newton/CMakeLists.txt
+index 6e9777a..9f15b89 100644
+--- a/src/Newton/CMakeLists.txt
++++ b/src/Newton/CMakeLists.txt
+@@ -12,3 +12,7 @@ endif()
+ 
+ add_library(newton ${libnewton_srcs})
+ target_link_libraries(newton newmat base)
++
++INSTALL(TARGETS newton
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/Newton/OptBCEllipsoid.C b/src/Newton/OptBCEllipsoid.C
+index 407c5c6..0eb0704 100644
+--- a/src/Newton/OptBCEllipsoid.C
++++ b/src/Newton/OptBCEllipsoid.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBCFDNewton.C b/src/Newton/OptBCFDNewton.C
+index 6c65ee7..309d351 100644
+--- a/src/Newton/OptBCFDNewton.C
++++ b/src/Newton/OptBCFDNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBCNewton.C b/src/Newton/OptBCNewton.C
+index ed87bcd..53abf12 100644
+--- a/src/Newton/OptBCNewton.C
++++ b/src/Newton/OptBCNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBCNewtonLike.C b/src/Newton/OptBCNewtonLike.C
+index 3946573..0db179b 100644
+--- a/src/Newton/OptBCNewtonLike.C
++++ b/src/Newton/OptBCNewtonLike.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBCQNewton.C b/src/Newton/OptBCQNewton.C
+index 1c14a8f..ee59965 100644
+--- a/src/Newton/OptBCQNewton.C
++++ b/src/Newton/OptBCQNewton.C
+@@ -4,7 +4,7 @@
+ // Sandia National Laboratories
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBaNewton.C b/src/Newton/OptBaNewton.C
+index 3eb600d..0fe09ad 100644
+--- a/src/Newton/OptBaNewton.C
++++ b/src/Newton/OptBaNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptBaQNewton.C b/src/Newton/OptBaQNewton.C
+index 771b330..efcd47d 100644
+--- a/src/Newton/OptBaQNewton.C
++++ b/src/Newton/OptBaQNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptCG.C b/src/Newton/OptCG.C
+index 80d764f..a88b0dd 100644
+--- a/src/Newton/OptCG.C
++++ b/src/Newton/OptCG.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptConstrFDNewton.C b/src/Newton/OptConstrFDNewton.C
+index b6aa80d..5ecc1fa 100644
+--- a/src/Newton/OptConstrFDNewton.C
++++ b/src/Newton/OptConstrFDNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptConstrNewton.C b/src/Newton/OptConstrNewton.C
+index db1c31b..871d2f8 100644
+--- a/src/Newton/OptConstrNewton.C
++++ b/src/Newton/OptConstrNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptConstrNewtonLike.C b/src/Newton/OptConstrNewtonLike.C
+index 8ad8b63..d560d1e 100644
+--- a/src/Newton/OptConstrNewtonLike.C
++++ b/src/Newton/OptConstrNewtonLike.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptConstrQNewton.C b/src/Newton/OptConstrQNewton.C
+index 08f3eb0..2834cc8 100644
+--- a/src/Newton/OptConstrQNewton.C
++++ b/src/Newton/OptConstrQNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptDHNIPS.C b/src/Newton/OptDHNIPS.C
+index eba79bb..b5230c0 100644
+--- a/src/Newton/OptDHNIPS.C
++++ b/src/Newton/OptDHNIPS.C
+@@ -5,7 +5,7 @@
+ // Last Modified 01/29/2004 
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptFDNIPS.C b/src/Newton/OptFDNIPS.C
+index 251d877..0ecb7c2 100644
+--- a/src/Newton/OptFDNIPS.C
++++ b/src/Newton/OptFDNIPS.C
+@@ -5,7 +5,7 @@
+ // Last Modified December 2000
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -22,6 +22,10 @@
+ #include "precisio.h"
+ #include "cblas.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using NEWMAT::Real;
+ using NEWMAT::FloatingPointPrecision;
+ using NEWMAT::ColumnVector;
+diff --git a/src/Newton/OptFDNewton.C b/src/Newton/OptFDNewton.C
+index 14b09f0..7172da9 100644
+--- a/src/Newton/OptFDNewton.C
++++ b/src/Newton/OptFDNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptLBFGS.C b/src/Newton/OptLBFGS.C
+index 31f7d78..422f45c 100644
+--- a/src/Newton/OptLBFGS.C
++++ b/src/Newton/OptLBFGS.C
+@@ -4,7 +4,7 @@
+ // raoliva@lbl.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptNIPS.C b/src/Newton/OptNIPS.C
+index 857aa00..380a622 100644
+--- a/src/Newton/OptNIPS.C
++++ b/src/Newton/OptNIPS.C
+@@ -5,7 +5,7 @@
+ // Last Modified December 2000
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptNIPSLike.C b/src/Newton/OptNIPSLike.C
+index 9bdb210..e8a1eb1 100644
+--- a/src/Newton/OptNIPSLike.C
++++ b/src/Newton/OptNIPSLike.C
+@@ -15,7 +15,7 @@
+ // Nonconvex Nonlinear Programming".
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -37,6 +37,10 @@ using namespace std;
+ #include "cblas.h"
+ #include "ioformat.h"
+ 
++#ifdef _MSC_VER
++  #define copysign _copysign
++#endif
++
+ using NEWMAT::Real;
+ using NEWMAT::FloatingPointPrecision;
+ using NEWMAT::ColumnVector;
+diff --git a/src/Newton/OptNewton.C b/src/Newton/OptNewton.C
+index a234acb..86b6353 100644
+--- a/src/Newton/OptNewton.C
++++ b/src/Newton/OptNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptNewtonLike.C b/src/Newton/OptNewtonLike.C
+index a66fc57..2ff7d0c 100644
+--- a/src/Newton/OptNewtonLike.C
++++ b/src/Newton/OptNewtonLike.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptQNIPS.C b/src/Newton/OptQNIPS.C
+index 0bcab7d..e305004 100644
+--- a/src/Newton/OptQNIPS.C
++++ b/src/Newton/OptQNIPS.C
+@@ -5,7 +5,7 @@
+ // Last Modified December 2000
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Newton/OptQNewton.C b/src/Newton/OptQNewton.C
+index 0c8516a..b8361b1 100644
+--- a/src/Newton/OptQNewton.C
++++ b/src/Newton/OptQNewton.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/CMakeLists.txt b/src/PDS/CMakeLists.txt
+index 658ea02..4b8c72d 100644
+--- a/src/PDS/CMakeLists.txt
++++ b/src/PDS/CMakeLists.txt
+@@ -16,3 +16,7 @@ if(BLAS_FOUND)
+ endif(BLAS_FOUND)
+ 
+ target_link_libraries(pds ${pds_libs})
++
++INSTALL(TARGETS pds
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/PDS/create_scheme.C b/src/PDS/create_scheme.C
+index 4e17d5e..c7096b5 100644
+--- a/src/PDS/create_scheme.C
++++ b/src/PDS/create_scheme.C
+@@ -6,7 +6,7 @@
+ // meza@california.sandia.gov
+ //--------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pds.C b/src/PDS/pds.C
+index b366218..e356a52 100644
+--- a/src/PDS/pds.C
++++ b/src/PDS/pds.C
+@@ -6,7 +6,7 @@
+ // meza@california.sandia.gov
+ //--------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pdschk.C b/src/PDS/pdschk.C
+index 7ffb321..0ad26ef 100644
+--- a/src/PDS/pdschk.C
++++ b/src/PDS/pdschk.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pdscom.c b/src/PDS/pdscom.c
+index 7e667ba..bf7fd03 100644
+--- a/src/PDS/pdscom.c
++++ b/src/PDS/pdscom.c
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pdsdone.c b/src/PDS/pdsdone.c
+index b2eeac3..ebe1eeb 100644
+--- a/src/PDS/pdsdone.c
++++ b/src/PDS/pdsdone.c
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pdsget.c b/src/PDS/pdsget.c
+index 5b14930..3e6e282 100644
+--- a/src/PDS/pdsget.c
++++ b/src/PDS/pdsget.c
+@@ -1,11 +1,15 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+-#include <unistd.h>
++#ifdef _MSC_VER
++  #include <io.h>
++#else
++  #include <unistd.h>
++#endif
+ #include <math.h>
+ #include <string.h>
+ 
+diff --git a/src/PDS/pdshrk.c b/src/PDS/pdshrk.c
+index 754f393..b3d76ba 100644
+--- a/src/PDS/pdshrk.c
++++ b/src/PDS/pdshrk.c
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/PDS/pdsinit.C b/src/PDS/pdsinit.C
+index 886995d..8e33ced 100644
+--- a/src/PDS/pdsinit.C
++++ b/src/PDS/pdsinit.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -22,7 +22,7 @@ using NEWMAT::ColumnVector;
+ 
+ // Structures for constraints and parallel configuration.
+ 
+-extern struct pdscon pdscon;
++extern "C" struct pdscon pdscon;
+ extern struct conbcmni conbcmni;
+ 
+ namespace OPTPP {
+diff --git a/src/PDS/pdsopt.C b/src/PDS/pdsopt.C
+index 7118397..b5c30d1 100644
+--- a/src/PDS/pdsopt.C
++++ b/src/PDS/pdsopt.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -30,8 +30,8 @@ using NEWMAT::ColumnVector;
+ 
+ /* Structures for constraints and parallel configurations. */
+ 
+-extern struct pdscon pdscon;
+-extern struct conbcmni conbcmni;
++extern "C" struct pdscon pdscon;
++extern "C" struct conbcmni conbcmni;
+ 
+ namespace OPTPP {
+ 
+diff --git a/src/PDS/pdswork.C b/src/PDS/pdswork.C
+index dcffd73..4f08b80 100644
+--- a/src/PDS/pdswork.C
++++ b/src/PDS/pdswork.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -26,7 +26,7 @@
+ using namespace std;
+ using NEWMAT::ColumnVector;
+ 
+-extern struct pdscon pdscon;
++extern "C" struct pdscon pdscon;
+ extern struct conbcmni conbcmni;
+ 
+ namespace OPTPP {
+diff --git a/src/PDS/writes.c b/src/PDS/writes.c
+index 934f32f..86efd7a 100644
+--- a/src/PDS/writes.c
++++ b/src/PDS/writes.c
+@@ -7,7 +7,11 @@
+ //--------------------------------------------------------------------
+ */
+ 
+-#include <unistd.h>
++#ifdef _MSC_VER
++  #include <io.h>
++#else
++  #include <unistd.h>
++#endif
+ 
+ #include "pds.h"
+ 
+diff --git a/src/UserInterface/AppLauncher.C b/src/UserInterface/AppLauncher.C
+index d37f9f3..9eac2fd 100644
+--- a/src/UserInterface/AppLauncher.C
++++ b/src/UserInterface/AppLauncher.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/UserInterface/NLF0APP.C b/src/UserInterface/NLF0APP.C
+index 836c7f8..e10c466 100644
+--- a/src/UserInterface/NLF0APP.C
++++ b/src/UserInterface/NLF0APP.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/UserInterface/Problem.C b/src/UserInterface/Problem.C
+index f2e05d5..b82a2f8 100644
+--- a/src/UserInterface/Problem.C
++++ b/src/UserInterface/Problem.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/UserInterface/opt++.C b/src/UserInterface/opt++.C
+index 582e687..5cd888f 100644
+--- a/src/UserInterface/opt++.C
++++ b/src/UserInterface/opt++.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Utils/CMakeLists.txt b/src/Utils/CMakeLists.txt
+index 63dbdd6..4f33e52 100644
+--- a/src/Utils/CMakeLists.txt
++++ b/src/Utils/CMakeLists.txt
+@@ -23,3 +23,7 @@ if(HAVE_SYS_TIME_H)
+ endif()
+ 
+ add_library(utils ${libutils_srcs})
++
++INSTALL(TARGETS utils
++	ARCHIVE DESTINATION lib/optpp
++)
+diff --git a/src/Utils/OptppExceptions.C b/src/Utils/OptppExceptions.C
+index e7f4798..db9efc2 100644
+--- a/src/Utils/OptppExceptions.C
++++ b/src/Utils/OptppExceptions.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Utils/OptppFatalError.C b/src/Utils/OptppFatalError.C
+index 1e062f1..a1c76e2 100644
+--- a/src/Utils/OptppFatalError.C
++++ b/src/Utils/OptppFatalError.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/src/Utils/file_cutils.c b/src/Utils/file_cutils.c
+index c48937b..d55415a 100644
+--- a/src/Utils/file_cutils.c
++++ b/src/Utils/file_cutils.c
+@@ -7,7 +7,15 @@
+  */
+ 
+ #include <sys/types.h>
+-#include <unistd.h>
++#ifdef _MSC_VER
++  #include <io.h>
++  #define S_IRUSR   S_IREAD
++  #define S_IWUSR   S_IWRITE
++  #define open _open
++  #define close _close
++#else
++  #include <unistd.h>
++#endif
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <stdio.h>
+diff --git a/src/Utils/timers.c b/src/Utils/timers.c
+index df67ebb..356c037 100644
+--- a/src/Utils/timers.c
++++ b/src/Utils/timers.c
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //----------------------------------------------------------------------*/
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+@@ -64,8 +64,8 @@ double get_cpu_time()
+ #else
+     FILETIME creationTime,kernTime,userTime,exitTime;
+     HANDLE process = GetCurrentProcess();
+-    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
+     SYSTEMTIME sysTime;
++    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
+     FileTimeToSystemTime(&userTime,&sysTime);
+     time = (double)sysTime.wSecond + (double)sysTime.wMilliseconds * 0.001;
+ #endif
+@@ -75,6 +75,23 @@ double get_cpu_time()
+ */
+ }
+ 
++
++/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
++#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
++
++int gettimeofday (struct timeval *tv, void* tz)
++{
++  FILETIME ft;
++  __int64 ns100 = 0;
++  GetSystemTimeAsFileTime (&ft);
++  ns100 = (__int64)ft.dwHighDateTime << 32 | ft.dwLowDateTime;
++  tv->tv_usec = (long) ((ns100 / 10LL) % 1000000LL);
++  tv->tv_sec = (long) ((ns100 - 116444736000000000LL) / 10000000LL);
++  return (0);
++}
++
++#endif
++
+ double get_wall_clock_time()
+ {
+ /* ********************************************************************
+@@ -99,9 +116,9 @@ double get_wall_clock_time()
+ ** *******************************************************************/
+ 
+     double time;
+-#ifdef HAVE_SYS_TIME_H
++//#ifdef HAVE_SYS_TIME_H
+     struct timeval tp;
+-#endif
++//#endif
+ 
+ /*
+ **  Begin get_wall_clock_time.
+@@ -117,18 +134,3 @@ double get_wall_clock_time()
+ */
+ }
+ 
+-/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
+-#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
+-int gettimeofday (struct timeval *tv, void* tz)
+-{
+-  union {
+-    __int64 ns100; /*time since 1 Jan 1601 in 100ns units */
+-    FILETIME ft;
+-  } now;
+-
+-  GetSystemTimeAsFileTime (&now.ft);
+-  tv->tv_usec = (long) ((now.ns100 / 10LL) % 1000000LL);
+-  tv->tv_sec = (long) ((now.ns100 - 116444736000000000LL) / 10000000LL);
+-  return (0);
+-}
+-#endif
+diff --git a/tests/constraints/tstfcn.C b/tests/constraints/tstfcn.C
+index 01482c7..7539dde 100644
+--- a/tests/constraints/tstfcn.C
++++ b/tests/constraints/tstfcn.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/hock/hockfcns.C b/tests/hock/hockfcns.C
+index f724083..98c4550 100644
+--- a/tests/hock/hockfcns.C
++++ b/tests/hock/hockfcns.C
+@@ -4,7 +4,7 @@
+ // pwillia@sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/hock/tstfcn.C b/tests/hock/tstfcn.C
+index 5c9e888..0611602 100644
+--- a/tests/hock/tstfcn.C
++++ b/tests/hock/tstfcn.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/illum.C b/tests/npsol/illum.C
+index 352f8ba..d940e02 100644
+--- a/tests/npsol/illum.C
++++ b/tests/npsol/illum.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/sixtyfive.C b/tests/npsol/sixtyfive.C
+index 63c522c..7cf8fd4 100644
+--- a/tests/npsol/sixtyfive.C
++++ b/tests/npsol/sixtyfive.C
+@@ -13,7 +13,7 @@
+ // pwillia@sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/tstillum.C b/tests/npsol/tstillum.C
+index 2a98f39..303e5c4 100644
+--- a/tests/npsol/tstillum.C
++++ b/tests/npsol/tstillum.C
+@@ -2,7 +2,7 @@
+ // Test program for NPSOL objects
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/tstlinear.C b/tests/npsol/tstlinear.C
+index 67de1a8..935bf40 100644
+--- a/tests/npsol/tstlinear.C
++++ b/tests/npsol/tstlinear.C
+@@ -2,7 +2,7 @@
+ // Test program for NPSOL objects
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/tstnonlinear.C b/tests/npsol/tstnonlinear.C
+index 5c18001..00b142b 100644
+--- a/tests/npsol/tstnonlinear.C
++++ b/tests/npsol/tstnonlinear.C
+@@ -2,7 +2,7 @@
+ // Test program for NPSOL objects
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/tstnpsol.C b/tests/npsol/tstnpsol.C
+index 9b4d122..673dd71 100644
+--- a/tests/npsol/tstnpsol.C
++++ b/tests/npsol/tstnpsol.C
+@@ -2,7 +2,7 @@
+ // Test program for NPSOL objects
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/npsol/tstrosen.C b/tests/npsol/tstrosen.C
+index 63c12af..ebf0976 100644
+--- a/tests/npsol/tstrosen.C
++++ b/tests/npsol/tstrosen.C
+@@ -2,7 +2,7 @@
+ // Test program for NPSOL objects
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tstGSS.C b/tests/parallel/tstGSS.C
+index dec9a17..807ee8c 100644
+--- a/tests/parallel/tstGSS.C
++++ b/tests/parallel/tstGSS.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tstfcn.C b/tests/parallel/tstfcn.C
+index 39e1326..40b5a37 100644
+--- a/tests/parallel/tstfcn.C
++++ b/tests/parallel/tstfcn.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tstfdnewtpds.C b/tests/parallel/tstfdnewtpds.C
+index c84bd04..52a882f 100644
+--- a/tests/parallel/tstfdnewtpds.C
++++ b/tests/parallel/tstfdnewtpds.C
+@@ -2,7 +2,7 @@
+ //  Finite-Difference Newton with trust region PDS
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tstnewtpds.C b/tests/parallel/tstnewtpds.C
+index ac991de..690b8ba 100644
+--- a/tests/parallel/tstnewtpds.C
++++ b/tests/parallel/tstnewtpds.C
+@@ -2,7 +2,7 @@
+ // Test program for Quasi-Newton with trust region PDS on an NLF1
+ //
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tstpds.C b/tests/parallel/tstpds.C
+index 0321540..c7f345c 100644
+--- a/tests/parallel/tstpds.C
++++ b/tests/parallel/tstpds.C
+@@ -5,7 +5,7 @@
+  * have analytic gradients.
+  */
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/parallel/tsttrpds.C b/tests/parallel/tsttrpds.C
+index 9ac7ea5..93da29b 100644
+--- a/tests/parallel/tsttrpds.C
++++ b/tests/parallel/tsttrpds.C
+@@ -4,7 +4,7 @@
+  * Example of using TRPDS algorithm on a NLF1 problem.  
+  */
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/uncon/ellipsoid.C b/tests/uncon/ellipsoid.C
+index 569ed0d..a5ae145 100644
+--- a/tests/uncon/ellipsoid.C
++++ b/tests/uncon/ellipsoid.C
+@@ -1,5 +1,5 @@
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/uncon/tstLBFGS.C b/tests/uncon/tstLBFGS.C
+index 104ef78..63414f7 100644
+--- a/tests/uncon/tstLBFGS.C
++++ b/tests/uncon/tstLBFGS.C
+@@ -6,7 +6,7 @@
+  *
+  */
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/uncon/tstfcn.C b/tests/uncon/tstfcn.C
+index 7372f53..957ae7d 100644
+--- a/tests/uncon/tstfcn.C
++++ b/tests/uncon/tstfcn.C
+@@ -5,7 +5,7 @@
+ // meza@california.sandia.gov
+ //------------------------------------------------------------------------
+ 
+-#ifdef HAVE_CONFIG_H
++#ifdef HAVE_OPTPP_CONFIG_H
+ #include "OPT++_config.h"
+ #endif
+ 
+diff --git a/tests/xml/hockfcns.C b/tests/xml/hockfcns.C
+index 8f545b5..a045330 100644
+--- a/tests/xml/hockfcns.C
++++ b/tests/xml/hockfcns.C
+@@ -11,6 +11,7 @@ using NEWMAT::ColumnVector;
+ using NEWMAT::Matrix;
+ using NEWMAT::SymmetricMatrix;
+ using namespace OPTPP;
++using namespace std;
+ 
+ extern "C" {
+ void init_hs14(int ndim, ColumnVector& x)
+diff --git a/tests/xml/rosen.C b/tests/xml/rosen.C
+index a9214f7..c18f741 100644
+--- a/tests/xml/rosen.C
++++ b/tests/xml/rosen.C
+@@ -6,6 +6,7 @@ using NEWMAT::ColumnVector;
+ using NEWMAT::SymmetricMatrix;
+ 
+ using namespace OPTPP;
++using namespace std;
+ 
+ /* Example file to demonstrate the calling sequence to a 
+  * simple NLF1 function
+diff --git a/update.patch b/update.patch
+new file mode 100644
+index 0000000..aa286d3
+--- /dev/null
++++ b/update.patch
+@@ -0,0 +1,1563 @@
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index ccbc22d..2d91ff6 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -1,18 +1,24 @@
++ cmake_minimum_required(VERSION 2.6)
++-#project(optpp)
++-project(optpp C CXX Fortran)
+++project(optpp C CXX)
++ 
++-include(FortranCInterface)
+++option(USE_NPSOL "Do you want to use the npsol library?" OFF)
+++if(USE_NPSOL)
+++  find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
+++endif(USE_NPSOL)
++ 
++-find_library(npsol_lib libnpsol.a /usr/local/lib/libnpsol.a)
++ include_directories(
++   ${optpp_SOURCE_DIR}/include
++   ${optpp_SOURCE_DIR}/newmat11)
++ 
++-find_package(BLAS)
++-if(BLAS_FOUND)
++-  set(HAVE_BLAS TRUE)
++-endif()
+++option(USE_BLAS "Do you want to use the BLAS external libs?" OFF)
+++if(USE_BLAS)
+++  enable_language(Fortran)
+++  include(FortranCInterface)
+++  find_package(BLAS)
+++  if(BLAS_FOUND)
+++    set(HAVE_BLAS TRUE)
+++  endif()
+++endif(USE_BLAS)
++ 
++ if(NOT BUILT_BY_ACRO)
++   option(USE_MPI "Should OPTPP use MPI?" OFF)
++@@ -70,9 +76,66 @@ configure_file(
++   ${optpp_BINARY_DIR}/config/OPT++_config.h
++ )
++ include_directories(${optpp_BINARY_DIR}/config)
++-add_definitions(-DHAVE_CONFIG_H)
+++add_definitions(-DHAVE_OPTPP_CONFIG_H)
+++
+++INSTALL(FILES ${CMAKE_BINARY_DIR}/config/OPT++_config.h
+++	DESTINATION include/optpp
+++)
+++
+++SET(CMAKE_DEBUG_POSTFIX "d")
+++IF( WIN32 )
+++   # What is the equivalent for WIN32?
+++ELSE ( WIN32 )
+++   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+++   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+++ENDIF ( WIN32 )
++ 
++ add_subdirectory(newmat11)
++ add_subdirectory(src)
++-enable_testing()
++-add_subdirectory(tests)
+++#enable_testing()
+++#add_subdirectory(tests)
+++
+++# install the header files
+++SET(OPT_INCLUDES
+++  include/abbrev_copyright.h    include/AppLauncher.h       
+++  include/Appl_Data.h           include/Appl_Data_NPSOL.h   
+++  include/BoolVector.h          include/BoundConstraint.h   
+++  include/cblas.h               include/CGProblem.h         
+++  include/common.h              include/CompoundConstraint.h
+++  include/ConstraintBase.h      include/Constraint.h        
+++  include/GenSetBase.h          include/GenSetBox2d.h       
+++  include/GenSet.h              include/GenSetMin.h         
+++  include/GenSetStd.h           include/globals.h           
+++  include/ioformat.h            include/LinearConstraint.h  
+++  include/LinearEquation.h      include/LinearInequality.h  
+++  include/LSQNLF.h              include/NewtonProblem.h     
+++  include/NIPSProblem.h         include/NLFAPP.h            
+++  include/NLF.h                 include/NLP0.h              
+++  include/NLP1.h                include/NLP2.h              
+++  include/NLPBase.h             include/NLP.h               
+++  include/NonLinearConstraint.h include/NonLinearEquation.h 
+++  include/NonLinearInequality.h include/NPSOLProblem.h      
+++  include/OptBaNewton.h         include/OptBaQNewton.h      
+++  include/OptBCEllipsoid.h      include/OptBCFDNewton.h     
+++  include/OptBCNewton.h         include/OptBCNewtonLike.h   
+++  include/OptBCQNewton.h        include/OptCG.h             
+++  include/OptConstrFDNewton.h   include/OptConstrNewton.h   
+++  include/OptConstrNewtonLike.h include/OptConstrQNewton.h  
+++  include/OptDHNIPS.h           include/OptDirect.h         
+++  include/OptFDNewton.h         include/OptFDNIPS.h         
+++  include/OptGSS.h              include/Opt.h               
+++  include/OptLBFGS.h            include/OptNewton.h         
+++  include/OptNewtonLike.h       include/OptNIPS.h           
+++  include/OptNIPSLike.h         include/OptNPSOL.h          
+++  include/Opt_PARAMS.h          include/OptPDS.h            
+++  include/OptppArray.h          include/OptppExceptions.h   
+++  include/OptppFatalError.h     include/OptppSmartPtr.h     
+++  include/OptQNewton.h          include/OptQNIPS.h          
+++  include/pds.h                 include/PDSProblem.h        
+++  include/Problem.h             include/proto.h             
+++  include/TOLS.h                include/VariableList.h
+++)
+++
+++INSTALL(FILES ${OPT_INCLUDES}
+++	DESTINATION include/optpp
+++)
++diff --git a/config/OPT++_config_cmake.h.in b/config/OPT++_config_cmake.h.in
++index 2a94666..7a03037 100644
++--- a/config/OPT++_config_cmake.h.in
+++++ b/config/OPT++_config_cmake.h.in
++@@ -10,6 +10,10 @@
++ #else
++ #define F77_FUNC@FortranCInterface_GLOBAL_MACRO@
++ #endif
+++#else
+++#ifndef F77_FUNC
+++#define F77_FUNC(name,NAME) name
+++#endif
++ #endif
++ 
++ /* Define to 1 if you have the `gettimeofday' function. */
++diff --git a/docs/guide/tstgss.html b/docs/guide/tstgss.html
++index 58cdf79..e5b8466 100644
++--- a/docs/guide/tstgss.html
+++++ b/docs/guide/tstgss.html
++@@ -21,7 +21,7 @@ and only if the program is compiled with the MPI flag.
++  <table>
++  <tr><td> 
++ \code 
++-    #ifdef HAVE_CONFIG_H
+++    #ifdef HAVE_OPTPP_CONFIG_H
++     #include "OPT++_config.h"
++     #endif
++ 
++diff --git a/docs/guide/tstnpsol.html b/docs/guide/tstnpsol.html
++index 99e6fae..bd79c71 100644
++--- a/docs/guide/tstnpsol.html
+++++ b/docs/guide/tstnpsol.html
++@@ -8,7 +8,7 @@ bound vectors have dimension <em> n + nclin + ncnln </em>.
++ <hr />
++ 
++ \code
++-   #ifdef HAVE_CONFIG_H
+++   #ifdef HAVE_OPTPP_CONFIG_H
++    #include "OPT++_config.h"
++    #endif
++ 
++diff --git a/docs/guide/tstpds.html b/docs/guide/tstpds.html
++index e2253d2..ab29b27 100644
++--- a/docs/guide/tstpds.html
+++++ b/docs/guide/tstpds.html
++@@ -17,7 +17,7 @@ First, include the header files and subroutine declarations.
++ <tr><td>
++ \code
++ 
++-   #ifdef HAVE_CONFIG_H
+++   #ifdef HAVE_OPTPP_CONFIG_H
++    #include "OPT++_config.h"
++    #endif
++ 
++diff --git a/docs/guide/tsttrpds.html b/docs/guide/tsttrpds.html
++index 27e7b5f..18e8719 100644
++--- a/docs/guide/tsttrpds.html
+++++ b/docs/guide/tsttrpds.html
++@@ -16,7 +16,7 @@ First, include the header files and subroutine declarations.
++ <table>
++ <tr><td>
++ \code
++-   #ifdef HAVE_CONFIG_H
+++   #ifdef HAVE_OPTPP_CONFIG_H
++    #include "OPT++_config.h"
++    #endif
++ 
++diff --git a/include/AppLauncher.h b/include/AppLauncher.h
++index 581186e..593a3a8 100644
++--- a/include/AppLauncher.h
+++++ b/include/AppLauncher.h
++@@ -1,7 +1,7 @@
++ #ifndef APPLAUNCHER_H
++ #define APPLAUNCHER_H
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/Appl_Data.h b/include/Appl_Data.h
++index 0360daa..68cfa34 100644
++--- a/include/Appl_Data.h
+++++ b/include/Appl_Data.h
++@@ -7,7 +7,7 @@
++   work by or on behalf of the U.S. Government.
++  ----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/Appl_Data_NPSOL.h b/include/Appl_Data_NPSOL.h
++index c8a4fc9..160240b 100644
++--- a/include/Appl_Data_NPSOL.h
+++++ b/include/Appl_Data_NPSOL.h
++@@ -7,7 +7,7 @@
++   work by or on behalf of the U.S. Government.
++  --------------------------------------------------------------------- */
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/BoolVector.h b/include/BoolVector.h
++index 188f46d..b03df47 100644
++--- a/include/BoolVector.h
+++++ b/include/BoolVector.h
++@@ -1,7 +1,7 @@
++ #ifndef bcv_h
++ #define bcv_h
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/GenSetBase.h b/include/GenSetBase.h
++index 25e30b8..11f4f43 100644
++--- a/include/GenSetBase.h
+++++ b/include/GenSetBase.h
++@@ -10,7 +10,7 @@
++  Lawrence Berkeley National Laboratory
++  ------------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/LSQNLF.h b/include/LSQNLF.h
++index c6186fa..0a381b0 100644
++--- a/include/LSQNLF.h
+++++ b/include/LSQNLF.h
++@@ -8,7 +8,7 @@
++  J. C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
++  ----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/NLF.h b/include/NLF.h
++index dfba7fd..d07f36d 100644
++--- a/include/NLF.h
+++++ b/include/NLF.h
++@@ -87,16 +87,16 @@ public:
++   NLF0(int ndim): 
++      NLP0(ndim), init_flag(false) {;}
++   NLF0(int ndim, USERFCN0 f): 
++-     NLP0(ndim), fcn(f), fcn_v(f_helper), init_flag(false), vptr(this) {;}
+++     NLP0(ndim), fcn(f), fcn_v(f_helper), init_flag(false) {vptr = this;}
++   NLF0(int ndim, USERFCN0 f, INITFCN i, CompoundConstraint* constraint = 0):
++      NLP0(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
++-     init_flag(false), vptr(this) {;}
+++     init_flag(false) {vptr = this;}
++   NLF0(int ndim, USERFCN0 f, INITFCN i, INITCONFCN c):
++      NLP0(ndim), fcn(f), fcn_v(f_helper),init_fcn(i), init_confcn(c), 
++-     init_flag(false), vptr(this) 
++-     {constraint_ = init_confcn(ndim);}
+++     init_flag(false)
+++     {vptr = this; constraint_ = init_confcn(ndim);}
++   NLF0(int ndim, int nlncons, USERNLNCON0 f, INITFCN i):
++-     NLP0(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this) {;}
+++     NLP0(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false) {vptr = this;}
++   /// Alternate function pointers with user-supplied void function pointer
++   NLF0(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
++      NLP0(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
++@@ -189,15 +189,15 @@ public:
++      NLP1(ndim), init_flag(false) {;}
++   NLF1(int ndim, USERFCN1 f, INITFCN i, CompoundConstraint* constraint = 0):
++      NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
++-     init_flag(false), vptr(this)
++-     {analytic_grad = 1;}
+++     init_flag(false)
+++     {vptr = this; analytic_grad = 1;}
++   NLF1(int ndim, USERFCN1 f, INITFCN i, INITCONFCN c):
++      NLP1(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
++-     init_flag(false), vptr(this)
++-     {analytic_grad = 1; constraint_ = init_confcn(ndim);}
+++     init_flag(false)
+++     {vptr = this; analytic_grad = 1; constraint_ = init_confcn(ndim);}
++   NLF1(int ndim, int nlncons, USERNLNCON1 f, INITFCN i):
++-     NLP1(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this)
++-     {analytic_grad = 1;}
+++     NLP1(ndim,nlncons), confcn(f), init_fcn(i), init_flag(false)
+++     {vptr = this; analytic_grad = 1;}
++   /// Alternate function pointers with user-supplied void function pointer
++   NLF1(int ndim, USERFCN1V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
++      NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
++@@ -293,17 +293,17 @@ public:
++      NLP2(ndim), init_flag(false) {;}
++   NLF2(int ndim, USERFCN2 f, INITFCN i, CompoundConstraint* constraint = 0):
++      NLP2(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
++-     init_flag(false), vptr(this) {;}
+++     init_flag(false) {vptr = this;}
++   NLF2(int ndim, USERFCN2 f, INITFCN i, INITCONFCN c):
++      NLP2(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
++-     init_flag(false), vptr(this)
++-     {constraint_ = init_confcn(ndim);}
+++     init_flag(false)
+++     {vptr = this; constraint_ = init_confcn(ndim);}
++   NLF2(int ndim, int nlncons, USERNLNCON1 f, INITFCN i):
++      NLP2(ndim, nlncons), confcn1(f), confcn2(NULL), init_fcn(i), 
++-     init_flag(false), vptr(this) {;}
+++     init_flag(false) {vptr = this;}
++   NLF2(int ndim, int nlncons, USERNLNCON2 f, INITFCN i):
++      NLP2(ndim, nlncons), confcn1(NULL), confcn2(f), init_fcn(i), 
++-     init_flag(false), vptr(this) {;}
+++     init_flag(false) {vptr = this;}
++   /// Alternate function pointers with user-supplied void function pointer
++   NLF2(int ndim, USERFCN2V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
++      NLP2(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
++@@ -404,15 +404,15 @@ public:
++      NLP1(ndim), init_flag(false) {;}
++   FDNLF1(int ndim, USERFCN0 f, INITFCN i, CompoundConstraint* constraint = 0): 
++     NLP1(ndim, constraint), fcn(f), fcn_v(f_helper), init_fcn(i), 
++-    init_flag(false), vptr(this)
++-    { analytic_grad = 0;}
+++    init_flag(false)
+++     {vptr = this;  analytic_grad = 0;}
++   FDNLF1(int ndim, USERFCN0 f, INITFCN i, INITCONFCN c): 
++     NLP1(ndim), fcn(f), fcn_v(f_helper), init_fcn(i), init_confcn(c), 
++-    init_flag(false), vptr(this)
++-    { analytic_grad = 0; constraint_ = init_confcn(ndim);}
+++    init_flag(false)
+++     {vptr = this;  analytic_grad = 0; constraint_ = init_confcn(ndim);}
++   FDNLF1(int ndim, int nlncons, USERNLNCON0 f, INITFCN i):
++-    NLP1(ndim, nlncons), confcn(f), init_fcn(i), init_flag(false), vptr(this)
++-    { analytic_grad = 0;}
+++    NLP1(ndim, nlncons), confcn(f), init_fcn(i), init_flag(false)
+++     {vptr = this; analytic_grad = 0;}
++   /// Alternate function pointers with user-supplied void function pointer
++   FDNLF1(int ndim, USERFCN0V f, INITFCN i, CompoundConstraint* constraint = 0, void* v = 0):
++      NLP1(ndim, constraint), fcn(0), fcn_v(f), init_fcn(i), init_flag(false) 
++diff --git a/include/NLP0.h b/include/NLP0.h
++index 5c8665d..65f44e2 100644
++--- a/include/NLP0.h
+++++ b/include/NLP0.h
++@@ -1,7 +1,7 @@
++ #ifndef NLP0_h
++ #define NLP0_h
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/NLPBase.h b/include/NLPBase.h
++index 86e028f..873e39d 100644
++--- a/include/NLPBase.h
+++++ b/include/NLPBase.h
++@@ -9,7 +9,7 @@
++  P.J. Williams, Sandia National Laboratories, pwillia@sandia.gov
++  ----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/NonLinearConstraint.h b/include/NonLinearConstraint.h
++index 1eb5c41..90fce30 100644
++--- a/include/NonLinearConstraint.h
+++++ b/include/NonLinearConstraint.h
++@@ -9,7 +9,7 @@
++  P.J. Williams, Sandia National Laboratories, pwillia@sandia.gov
++  ----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/Opt.h b/include/Opt.h
++index 867e361..c74584f 100644
++--- a/include/Opt.h
+++++ b/include/Opt.h
++@@ -9,7 +9,7 @@
++  J.C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
++  ----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -133,7 +133,7 @@ protected:
++   /// What method is being used
++   char method[80];  
++   /// Optional message
++-  char mesg[80];    
+++  char mesg[128];    
++   /// Return code from Optimization class
++   int  ret_code;    
++   /// Number of iterations taken 
++@@ -217,8 +217,8 @@ public:
++  */
++   OptimizeClass(): x_optout_fd(-1), dim(0), debug_(0), trace(0) {
++     optout = new std::ostream(&file_buffer);
++-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
++-    if (!file_buffer.is_open() || !optout->good()) {
+++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
++       std::cout << "OptimizeClass:: Can't open default output file\n";
++       optout_fd = 0;
++     }
++@@ -232,8 +232,8 @@ public:
++   OptimizeClass(int n): x_optout_fd(-1), dim(n), sx(n), sfx(n), xprev(n),
++     fcn_evals(0), backtracks(0), debug_(0), trace(0)      {
++     optout = new std::ostream(&file_buffer);
++-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
++-    if (!file_buffer.is_open() || !optout->good()) {
+++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
++       std::cout << "OptimizeClass:: Can't open default output file\n";
++       optout_fd = 0;
++     }
++@@ -247,8 +247,8 @@ public:
++  */
++   OptimizeClass(TOLS t): x_optout_fd(-1), dim(0), tol(t), debug_(0), trace(0){
++     optout = new std::ostream(&file_buffer);
++-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
++-    if (!file_buffer.is_open() || !optout->good()) {
+++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
++       std::cout << "OptimizeClass:: Can't open default output file\n";
++       optout_fd = 0;
++     }
++@@ -263,8 +263,8 @@ public:
++   OptimizeClass(int n, TOLS t): x_optout_fd(-1), dim(n), tol(t), sx(n),sfx(n),
++       xprev(n), fcn_evals(0), backtracks(0), debug_(0), trace(0){
++     optout = new std::ostream(&file_buffer);
++-    file_buffer.open("OPT_DEFAULT.out", std::ios::out);
++-    if (!file_buffer.is_open() || !optout->good()) {
+++    /*file_buffer.open("OPT_DEFAULT.out", std::ios::out);*/
+++    if (/*!file_buffer.is_open() ||*/ !optout->good()) {
++       std::cout << "OptimizeClass:: Can't open default output file\n";
++       optout_fd = 0;
++     }
++diff --git a/include/OptGSS.h b/include/OptGSS.h
++index b88d3ed..d31d184 100644
++--- a/include/OptGSS.h
+++++ b/include/OptGSS.h
++@@ -11,7 +11,7 @@
++   *
++   */
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/OptPDS.h b/include/OptPDS.h
++index a2a586f..19aa8da 100644
++--- a/include/OptPDS.h
+++++ b/include/OptPDS.h
++@@ -6,7 +6,7 @@
++  J.C. Meza, Sandia National Laboratories meza@california.sandia.gov
++  ------------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/Problem.h b/include/Problem.h
++index c895ed7..a71a786 100644
++--- a/include/Problem.h
+++++ b/include/Problem.h
++@@ -1,7 +1,7 @@
++ #ifndef PROBLEM_H
++ #define PROBLEM_H
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/VariableList.h b/include/VariableList.h
++index 09b286a..49e524d 100644
++--- a/include/VariableList.h
+++++ b/include/VariableList.h
++@@ -1,7 +1,7 @@
++ #ifndef VARIABLELIST_H
++ #define VARIABLELIST_H
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/globals.h b/include/globals.h
++index 0c823a3..a73696f 100644
++--- a/include/globals.h
+++++ b/include/globals.h
++@@ -9,7 +9,7 @@
++  J. C. Meza, Sandia National Laboratories, meza@ca.sandia.gov
++  -----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/include/pds.h b/include/pds.h
++index fbe1101..6a48278 100644
++--- a/include/pds.h
+++++ b/include/pds.h
++@@ -2,7 +2,7 @@
++ #ifndef PDS_INC
++ #define PDS_INC
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/newmat11/CMakeLists.txt b/newmat11/CMakeLists.txt
++index 77b523b..5cba9b1 100644
++--- a/newmat11/CMakeLists.txt
+++++ b/newmat11/CMakeLists.txt
++@@ -7,3 +7,17 @@ add_library(newmat
++ set_target_properties(newmat PROPERTIES
++   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
++   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
+++  
+++INSTALL(TARGETS newmat
+++	ARCHIVE DESTINATION lib/optpp
+++)
+++
+++# install the header files
+++SET(NEWMAT_INCLUDES controlw.h    include.h       myexcept.h
+++                  newmatap.h    newmat.h        newmatio.h
+++                  newmatnl.h    newmatrc.h      newmatrm.h
+++                  precisio.h    solution.h      tmt.h)
+++
+++INSTALL(FILES ${NEWMAT_INCLUDES}
+++	DESTINATION include/optpp
+++)
++diff --git a/newmat11/include.h b/newmat11/include.h
++index 03f72a6..2b9d2c5 100644
++--- a/newmat11/include.h
+++++ b/newmat11/include.h
++@@ -3,7 +3,7 @@
++ #ifndef NEWMAT_INCLUDE_H
++ #define NEWMAT_INCLUDE_H
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Base/CMakeLists.txt b/src/Base/CMakeLists.txt
++index 1bf42da..2ad7645 100644
++--- a/src/Base/CMakeLists.txt
+++++ b/src/Base/CMakeLists.txt
++@@ -9,3 +9,7 @@ if(MPI_FOUND)
++   list(APPEND base_libs ${MPI_LIBRARY})
++ endif()
++ target_link_libraries(base ${base_libs})
+++
+++INSTALL(TARGETS base
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/Base/LSQNLF.C b/src/Base/LSQNLF.C
++index 53b5319..3a272a8 100644
++--- a/src/Base/LSQNLF.C
+++++ b/src/Base/LSQNLF.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -17,6 +17,10 @@
++ 
++ #include "LSQNLF.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using namespace std;
++ using NEWMAT::ColumnVector;
++ using NEWMAT::Matrix;
++diff --git a/src/Base/NLF0.C b/src/Base/NLF0.C
++index be0e2dd..4bdbf9e 100644
++--- a/src/Base/NLF0.C
+++++ b/src/Base/NLF0.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Base/NLP0.C b/src/Base/NLP0.C
++index 2d785be..9d15a77 100644
++--- a/src/Base/NLP0.C
+++++ b/src/Base/NLP0.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -26,6 +26,10 @@
++ #include "cblas.h"
++ #include "ioformat.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using namespace std;
++ 
++ using NEWMAT::Real;
++diff --git a/src/Base/NLP1.C b/src/Base/NLP1.C
++index bc5f9ed..8653045 100644
++--- a/src/Base/NLP1.C
+++++ b/src/Base/NLP1.C
++@@ -11,6 +11,10 @@
++ #include "precisio.h"
++ #include "ioformat.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using namespace std;
++ using NEWMAT::ColumnVector;
++ using NEWMAT::Matrix;
++diff --git a/src/Base/TOLS.C b/src/Base/TOLS.C
++index f411046..cdd2100 100644
++--- a/src/Base/TOLS.C
+++++ b/src/Base/TOLS.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Base/backtrack.C b/src/Base/backtrack.C
++index 83c470d..d651c67 100644
++--- a/src/Base/backtrack.C
+++++ b/src/Base/backtrack.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -17,6 +17,10 @@
++ 
++ #include "Opt.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using NEWMAT::ColumnVector;
++ 
++ const   int MAXITER = 20;
++diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
++index 011e630..4ac3af8 100644
++--- a/src/CMakeLists.txt
+++++ b/src/CMakeLists.txt
++@@ -1,3 +1,7 @@
+++if(WIN32)
+++  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+++endif(WIN32)
+++
++ add_subdirectory(Base)
++ add_subdirectory(Constraints)
++ add_subdirectory(GSS)
++@@ -10,3 +14,7 @@ target_link_libraries(opt base constraints gss newton pds utils)
++ set_target_properties(opt PROPERTIES
++   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
++   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
+++  
+++INSTALL(TARGETS opt
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/Constraints/CMakeLists.txt b/src/Constraints/CMakeLists.txt
++index 0604293..7c997d4 100644
++--- a/src/Constraints/CMakeLists.txt
+++++ b/src/Constraints/CMakeLists.txt
++@@ -4,3 +4,7 @@ add_library(constraints
++   NonLinearInequality.C
++ )
++ target_link_libraries(constraints utils)
+++
+++INSTALL(TARGETS constraints
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/Constraints/NonLinearConstraint.C b/src/Constraints/NonLinearConstraint.C
++index 0b62fe0..eba2526 100644
++--- a/src/Constraints/NonLinearConstraint.C
+++++ b/src/Constraints/NonLinearConstraint.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/GSS/CMakeLists.txt b/src/GSS/CMakeLists.txt
++index 091e345..668cb8a 100644
++--- a/src/GSS/CMakeLists.txt
+++++ b/src/GSS/CMakeLists.txt
++@@ -1 +1,5 @@
++ add_library(gss GenSetBase.C GenSetBox2d.C GenSetMin.C GenSetStd.C OptGSS.C ../globals.C)
+++
+++INSTALL(TARGETS gss
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/GSS/OptGSS.C b/src/GSS/OptGSS.C
++index b58d7ee..d71109e 100644
++--- a/src/GSS/OptGSS.C
+++++ b/src/GSS/OptGSS.C
++@@ -4,7 +4,7 @@
++ // raoliva@lbl.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/CMakeLists.txt b/src/Newton/CMakeLists.txt
++index 6e9777a..9f15b89 100644
++--- a/src/Newton/CMakeLists.txt
+++++ b/src/Newton/CMakeLists.txt
++@@ -12,3 +12,7 @@ endif()
++ 
++ add_library(newton ${libnewton_srcs})
++ target_link_libraries(newton newmat base)
+++
+++INSTALL(TARGETS newton
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/Newton/OptBCEllipsoid.C b/src/Newton/OptBCEllipsoid.C
++index 407c5c6..0eb0704 100644
++--- a/src/Newton/OptBCEllipsoid.C
+++++ b/src/Newton/OptBCEllipsoid.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBCFDNewton.C b/src/Newton/OptBCFDNewton.C
++index 6c65ee7..309d351 100644
++--- a/src/Newton/OptBCFDNewton.C
+++++ b/src/Newton/OptBCFDNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBCNewton.C b/src/Newton/OptBCNewton.C
++index ed87bcd..53abf12 100644
++--- a/src/Newton/OptBCNewton.C
+++++ b/src/Newton/OptBCNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBCNewtonLike.C b/src/Newton/OptBCNewtonLike.C
++index 3946573..0db179b 100644
++--- a/src/Newton/OptBCNewtonLike.C
+++++ b/src/Newton/OptBCNewtonLike.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBCQNewton.C b/src/Newton/OptBCQNewton.C
++index 1c14a8f..ee59965 100644
++--- a/src/Newton/OptBCQNewton.C
+++++ b/src/Newton/OptBCQNewton.C
++@@ -4,7 +4,7 @@
++ // Sandia National Laboratories
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBaNewton.C b/src/Newton/OptBaNewton.C
++index 3eb600d..0fe09ad 100644
++--- a/src/Newton/OptBaNewton.C
+++++ b/src/Newton/OptBaNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptBaQNewton.C b/src/Newton/OptBaQNewton.C
++index 771b330..efcd47d 100644
++--- a/src/Newton/OptBaQNewton.C
+++++ b/src/Newton/OptBaQNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptCG.C b/src/Newton/OptCG.C
++index 80d764f..a88b0dd 100644
++--- a/src/Newton/OptCG.C
+++++ b/src/Newton/OptCG.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptConstrFDNewton.C b/src/Newton/OptConstrFDNewton.C
++index b6aa80d..5ecc1fa 100644
++--- a/src/Newton/OptConstrFDNewton.C
+++++ b/src/Newton/OptConstrFDNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptConstrNewton.C b/src/Newton/OptConstrNewton.C
++index db1c31b..871d2f8 100644
++--- a/src/Newton/OptConstrNewton.C
+++++ b/src/Newton/OptConstrNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptConstrNewtonLike.C b/src/Newton/OptConstrNewtonLike.C
++index 8ad8b63..d560d1e 100644
++--- a/src/Newton/OptConstrNewtonLike.C
+++++ b/src/Newton/OptConstrNewtonLike.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptConstrQNewton.C b/src/Newton/OptConstrQNewton.C
++index 08f3eb0..2834cc8 100644
++--- a/src/Newton/OptConstrQNewton.C
+++++ b/src/Newton/OptConstrQNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptDHNIPS.C b/src/Newton/OptDHNIPS.C
++index eba79bb..b5230c0 100644
++--- a/src/Newton/OptDHNIPS.C
+++++ b/src/Newton/OptDHNIPS.C
++@@ -5,7 +5,7 @@
++ // Last Modified 01/29/2004 
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptFDNIPS.C b/src/Newton/OptFDNIPS.C
++index 251d877..0ecb7c2 100644
++--- a/src/Newton/OptFDNIPS.C
+++++ b/src/Newton/OptFDNIPS.C
++@@ -5,7 +5,7 @@
++ // Last Modified December 2000
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -22,6 +22,10 @@
++ #include "precisio.h"
++ #include "cblas.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using NEWMAT::Real;
++ using NEWMAT::FloatingPointPrecision;
++ using NEWMAT::ColumnVector;
++diff --git a/src/Newton/OptFDNewton.C b/src/Newton/OptFDNewton.C
++index 14b09f0..7172da9 100644
++--- a/src/Newton/OptFDNewton.C
+++++ b/src/Newton/OptFDNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptLBFGS.C b/src/Newton/OptLBFGS.C
++index 31f7d78..422f45c 100644
++--- a/src/Newton/OptLBFGS.C
+++++ b/src/Newton/OptLBFGS.C
++@@ -4,7 +4,7 @@
++ // raoliva@lbl.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptNIPS.C b/src/Newton/OptNIPS.C
++index 857aa00..380a622 100644
++--- a/src/Newton/OptNIPS.C
+++++ b/src/Newton/OptNIPS.C
++@@ -5,7 +5,7 @@
++ // Last Modified December 2000
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptNIPSLike.C b/src/Newton/OptNIPSLike.C
++index 9bdb210..e8a1eb1 100644
++--- a/src/Newton/OptNIPSLike.C
+++++ b/src/Newton/OptNIPSLike.C
++@@ -15,7 +15,7 @@
++ // Nonconvex Nonlinear Programming".
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -37,6 +37,10 @@ using namespace std;
++ #include "cblas.h"
++ #include "ioformat.h"
++ 
+++#ifdef _MSC_VER
+++  #define copysign _copysign
+++#endif
+++
++ using NEWMAT::Real;
++ using NEWMAT::FloatingPointPrecision;
++ using NEWMAT::ColumnVector;
++diff --git a/src/Newton/OptNewton.C b/src/Newton/OptNewton.C
++index a234acb..86b6353 100644
++--- a/src/Newton/OptNewton.C
+++++ b/src/Newton/OptNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptNewtonLike.C b/src/Newton/OptNewtonLike.C
++index a66fc57..2ff7d0c 100644
++--- a/src/Newton/OptNewtonLike.C
+++++ b/src/Newton/OptNewtonLike.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptQNIPS.C b/src/Newton/OptQNIPS.C
++index 0bcab7d..e305004 100644
++--- a/src/Newton/OptQNIPS.C
+++++ b/src/Newton/OptQNIPS.C
++@@ -5,7 +5,7 @@
++ // Last Modified December 2000
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Newton/OptQNewton.C b/src/Newton/OptQNewton.C
++index 0c8516a..b8361b1 100644
++--- a/src/Newton/OptQNewton.C
+++++ b/src/Newton/OptQNewton.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/CMakeLists.txt b/src/PDS/CMakeLists.txt
++index 658ea02..4b8c72d 100644
++--- a/src/PDS/CMakeLists.txt
+++++ b/src/PDS/CMakeLists.txt
++@@ -16,3 +16,7 @@ if(BLAS_FOUND)
++ endif(BLAS_FOUND)
++ 
++ target_link_libraries(pds ${pds_libs})
+++
+++INSTALL(TARGETS pds
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/PDS/create_scheme.C b/src/PDS/create_scheme.C
++index 4e17d5e..c7096b5 100644
++--- a/src/PDS/create_scheme.C
+++++ b/src/PDS/create_scheme.C
++@@ -6,7 +6,7 @@
++ // meza@california.sandia.gov
++ //--------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pds.C b/src/PDS/pds.C
++index b366218..e356a52 100644
++--- a/src/PDS/pds.C
+++++ b/src/PDS/pds.C
++@@ -6,7 +6,7 @@
++ // meza@california.sandia.gov
++ //--------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pdschk.C b/src/PDS/pdschk.C
++index 7ffb321..0ad26ef 100644
++--- a/src/PDS/pdschk.C
+++++ b/src/PDS/pdschk.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pdscom.c b/src/PDS/pdscom.c
++index 7e667ba..bf7fd03 100644
++--- a/src/PDS/pdscom.c
+++++ b/src/PDS/pdscom.c
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pdsdone.c b/src/PDS/pdsdone.c
++index b2eeac3..ebe1eeb 100644
++--- a/src/PDS/pdsdone.c
+++++ b/src/PDS/pdsdone.c
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pdsget.c b/src/PDS/pdsget.c
++index 5b14930..3e6e282 100644
++--- a/src/PDS/pdsget.c
+++++ b/src/PDS/pdsget.c
++@@ -1,11 +1,15 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++ #include <stdio.h>
++ #include <stdlib.h>
++-#include <unistd.h>
+++#ifdef _MSC_VER
+++  #include <io.h>
+++#else
+++  #include <unistd.h>
+++#endif
++ #include <math.h>
++ #include <string.h>
++ 
++diff --git a/src/PDS/pdshrk.c b/src/PDS/pdshrk.c
++index 754f393..b3d76ba 100644
++--- a/src/PDS/pdshrk.c
+++++ b/src/PDS/pdshrk.c
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/PDS/pdsinit.C b/src/PDS/pdsinit.C
++index 886995d..8e33ced 100644
++--- a/src/PDS/pdsinit.C
+++++ b/src/PDS/pdsinit.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -22,7 +22,7 @@ using NEWMAT::ColumnVector;
++ 
++ // Structures for constraints and parallel configuration.
++ 
++-extern struct pdscon pdscon;
+++extern "C" struct pdscon pdscon;
++ extern struct conbcmni conbcmni;
++ 
++ namespace OPTPP {
++diff --git a/src/PDS/pdsopt.C b/src/PDS/pdsopt.C
++index 7118397..b5c30d1 100644
++--- a/src/PDS/pdsopt.C
+++++ b/src/PDS/pdsopt.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -30,8 +30,8 @@ using NEWMAT::ColumnVector;
++ 
++ /* Structures for constraints and parallel configurations. */
++ 
++-extern struct pdscon pdscon;
++-extern struct conbcmni conbcmni;
+++extern "C" struct pdscon pdscon;
+++extern "C" struct conbcmni conbcmni;
++ 
++ namespace OPTPP {
++ 
++diff --git a/src/PDS/pdswork.C b/src/PDS/pdswork.C
++index dcffd73..4f08b80 100644
++--- a/src/PDS/pdswork.C
+++++ b/src/PDS/pdswork.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -26,7 +26,7 @@
++ using namespace std;
++ using NEWMAT::ColumnVector;
++ 
++-extern struct pdscon pdscon;
+++extern "C" struct pdscon pdscon;
++ extern struct conbcmni conbcmni;
++ 
++ namespace OPTPP {
++diff --git a/src/PDS/writes.c b/src/PDS/writes.c
++index 934f32f..86efd7a 100644
++--- a/src/PDS/writes.c
+++++ b/src/PDS/writes.c
++@@ -7,7 +7,11 @@
++ //--------------------------------------------------------------------
++ */
++ 
++-#include <unistd.h>
+++#ifdef _MSC_VER
+++  #include <io.h>
+++#else
+++  #include <unistd.h>
+++#endif
++ 
++ #include "pds.h"
++ 
++diff --git a/src/UserInterface/AppLauncher.C b/src/UserInterface/AppLauncher.C
++index d37f9f3..9eac2fd 100644
++--- a/src/UserInterface/AppLauncher.C
+++++ b/src/UserInterface/AppLauncher.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/UserInterface/NLF0APP.C b/src/UserInterface/NLF0APP.C
++index 836c7f8..e10c466 100644
++--- a/src/UserInterface/NLF0APP.C
+++++ b/src/UserInterface/NLF0APP.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/UserInterface/Problem.C b/src/UserInterface/Problem.C
++index f2e05d5..b82a2f8 100644
++--- a/src/UserInterface/Problem.C
+++++ b/src/UserInterface/Problem.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/UserInterface/opt++.C b/src/UserInterface/opt++.C
++index 582e687..5cd888f 100644
++--- a/src/UserInterface/opt++.C
+++++ b/src/UserInterface/opt++.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Utils/CMakeLists.txt b/src/Utils/CMakeLists.txt
++index 63dbdd6..4f33e52 100644
++--- a/src/Utils/CMakeLists.txt
+++++ b/src/Utils/CMakeLists.txt
++@@ -23,3 +23,7 @@ if(HAVE_SYS_TIME_H)
++ endif()
++ 
++ add_library(utils ${libutils_srcs})
+++
+++INSTALL(TARGETS utils
+++	ARCHIVE DESTINATION lib/optpp
+++)
++diff --git a/src/Utils/OptppExceptions.C b/src/Utils/OptppExceptions.C
++index e7f4798..db9efc2 100644
++--- a/src/Utils/OptppExceptions.C
+++++ b/src/Utils/OptppExceptions.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Utils/OptppFatalError.C b/src/Utils/OptppFatalError.C
++index 1e062f1..a1c76e2 100644
++--- a/src/Utils/OptppFatalError.C
+++++ b/src/Utils/OptppFatalError.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/src/Utils/file_cutils.c b/src/Utils/file_cutils.c
++index c48937b..d55415a 100644
++--- a/src/Utils/file_cutils.c
+++++ b/src/Utils/file_cutils.c
++@@ -7,7 +7,15 @@
++  */
++ 
++ #include <sys/types.h>
++-#include <unistd.h>
+++#ifdef _MSC_VER
+++  #include <io.h>
+++  #define S_IRUSR   S_IREAD
+++  #define S_IWUSR   S_IWRITE
+++  #define open _open
+++  #define close _close
+++#else
+++  #include <unistd.h>
+++#endif
++ #include <sys/stat.h>
++ #include <fcntl.h>
++ #include <stdio.h>
++diff --git a/src/Utils/timers.c b/src/Utils/timers.c
++index df67ebb..356c037 100644
++--- a/src/Utils/timers.c
+++++ b/src/Utils/timers.c
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //----------------------------------------------------------------------*/
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++@@ -64,8 +64,8 @@ double get_cpu_time()
++ #else
++     FILETIME creationTime,kernTime,userTime,exitTime;
++     HANDLE process = GetCurrentProcess();
++-    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
++     SYSTEMTIME sysTime;
+++    GetProcessTimes(process,&creationTime,&exitTime,&kernTime,&userTime);
++     FileTimeToSystemTime(&userTime,&sysTime);
++     time = (double)sysTime.wSecond + (double)sysTime.wMilliseconds * 0.001;
++ #endif
++@@ -75,6 +75,23 @@ double get_cpu_time()
++ */
++ }
++ 
+++
+++/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
+++#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
+++
+++int gettimeofday (struct timeval *tv, void* tz)
+++{
+++  FILETIME ft;
+++  __int64 ns100 = 0;
+++  GetSystemTimeAsFileTime (&ft);
+++  ns100 = (__int64)ft.dwHighDateTime << 32 | ft.dwLowDateTime;
+++  tv->tv_usec = (long) ((ns100 / 10LL) % 1000000LL);
+++  tv->tv_sec = (long) ((ns100 - 116444736000000000LL) / 10000000LL);
+++  return (0);
+++}
+++
+++#endif
+++
++ double get_wall_clock_time()
++ {
++ /* ********************************************************************
++@@ -99,9 +116,9 @@ double get_wall_clock_time()
++ ** *******************************************************************/
++ 
++     double time;
++-#ifdef HAVE_SYS_TIME_H
+++//#ifdef HAVE_SYS_TIME_H
++     struct timeval tp;
++-#endif
+++//#endif
++ 
++ /*
++ **  Begin get_wall_clock_time.
++@@ -117,18 +134,3 @@ double get_wall_clock_time()
++ */
++ }
++ 
++-/* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
++-#if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
++-int gettimeofday (struct timeval *tv, void* tz)
++-{
++-  union {
++-    __int64 ns100; /*time since 1 Jan 1601 in 100ns units */
++-    FILETIME ft;
++-  } now;
++-
++-  GetSystemTimeAsFileTime (&now.ft);
++-  tv->tv_usec = (long) ((now.ns100 / 10LL) % 1000000LL);
++-  tv->tv_sec = (long) ((now.ns100 - 116444736000000000LL) / 10000000LL);
++-  return (0);
++-}
++-#endif
++diff --git a/tests/constraints/tstfcn.C b/tests/constraints/tstfcn.C
++index 01482c7..7539dde 100644
++--- a/tests/constraints/tstfcn.C
+++++ b/tests/constraints/tstfcn.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/hock/hockfcns.C b/tests/hock/hockfcns.C
++index f724083..98c4550 100644
++--- a/tests/hock/hockfcns.C
+++++ b/tests/hock/hockfcns.C
++@@ -4,7 +4,7 @@
++ // pwillia@sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/hock/tstfcn.C b/tests/hock/tstfcn.C
++index 5c9e888..0611602 100644
++--- a/tests/hock/tstfcn.C
+++++ b/tests/hock/tstfcn.C
++@@ -5,7 +5,7 @@
++ // meza@california.sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/illum.C b/tests/npsol/illum.C
++index 352f8ba..d940e02 100644
++--- a/tests/npsol/illum.C
+++++ b/tests/npsol/illum.C
++@@ -1,5 +1,5 @@
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/sixtyfive.C b/tests/npsol/sixtyfive.C
++index 63c522c..7cf8fd4 100644
++--- a/tests/npsol/sixtyfive.C
+++++ b/tests/npsol/sixtyfive.C
++@@ -13,7 +13,7 @@
++ // pwillia@sandia.gov
++ //------------------------------------------------------------------------
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/tstillum.C b/tests/npsol/tstillum.C
++index 2a98f39..303e5c4 100644
++--- a/tests/npsol/tstillum.C
+++++ b/tests/npsol/tstillum.C
++@@ -2,7 +2,7 @@
++ // Test program for NPSOL objects
++ //
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/tstlinear.C b/tests/npsol/tstlinear.C
++index 67de1a8..935bf40 100644
++--- a/tests/npsol/tstlinear.C
+++++ b/tests/npsol/tstlinear.C
++@@ -2,7 +2,7 @@
++ // Test program for NPSOL objects
++ //
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/tstnonlinear.C b/tests/npsol/tstnonlinear.C
++index 5c18001..00b142b 100644
++--- a/tests/npsol/tstnonlinear.C
+++++ b/tests/npsol/tstnonlinear.C
++@@ -2,7 +2,7 @@
++ // Test program for NPSOL objects
++ //
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/tstnpsol.C b/tests/npsol/tstnpsol.C
++index 9b4d122..673dd71 100644
++--- a/tests/npsol/tstnpsol.C
+++++ b/tests/npsol/tstnpsol.C
++@@ -2,7 +2,7 @@
++ // Test program for NPSOL objects
++ //
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/npsol/tstrosen.C b/tests/npsol/tstrosen.C
++index 63c12af..ebf0976 100644
++--- a/tests/npsol/tstrosen.C
+++++ b/tests/npsol/tstrosen.C
++@@ -2,7 +2,7 @@
++ // Test program for NPSOL objects
++ //
++ 
++-#ifdef HAVE_CONFIG_H
+++#ifdef HAVE_OPTPP_CONFIG_H
++ #include "OPT++_config.h"
++ #endif
++ 
++diff --git a/tests/parallel/tstGSS.C b/tests/parallel/tstGSS.C
