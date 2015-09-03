@@ -11,6 +11,7 @@ add_subdirectory(Utils)
 
 add_library(optpp globals.C)
 target_link_libraries(optpp PUBLIC base constraints gss newton pds utils)
+target_compile_definitions(optpp PUBLIC HAVE_OPTPP_CONFIG_H)
 set_target_properties(optpp PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
