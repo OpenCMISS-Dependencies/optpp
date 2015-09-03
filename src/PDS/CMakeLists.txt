@@ -12,11 +12,13 @@ add_library(pds ${libpds_srcs})
 
 set(pds_libs utils)
 if(BLAS_FOUND)
-  list(APPEND pds_libs ${BLAS_LIBRARIES})
-endif(BLAS_FOUND)
+  list(APPEND pds_libs blas)
+endif()
 
 target_link_libraries(pds ${pds_libs})
 
 INSTALL(TARGETS pds
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include/optpp
 )

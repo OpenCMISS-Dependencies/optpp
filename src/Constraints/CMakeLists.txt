@@ -6,5 +6,7 @@ add_library(constraints
 target_link_libraries(constraints utils)
 
 INSTALL(TARGETS constraints
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include
 )

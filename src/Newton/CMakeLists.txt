@@ -14,5 +14,7 @@ add_library(newton ${libnewton_srcs})
 target_link_libraries(newton newmat base)
 
 INSTALL(TARGETS newton
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include/optpp
 )

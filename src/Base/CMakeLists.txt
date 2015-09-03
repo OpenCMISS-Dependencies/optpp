@@ -11,5 +11,7 @@ endif()
 target_link_libraries(base ${base_libs})
 
 INSTALL(TARGETS base
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include
 )

@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 2.6)
-project(optpp C CXX)
+cmake_minimum_required(VERSION 3.0)
+project(optpp VERSION 681 LANGUAGES C CXX)
+set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 option(USE_NPSOL "Do you want to use the npsol library?" OFF)
 if(USE_NPSOL)
@@ -10,15 +11,15 @@ include_directories(
   ${optpp_SOURCE_DIR}/include
   ${optpp_SOURCE_DIR}/newmat11)
 
-option(USE_BLAS "Do you want to use the BLAS external libs?" OFF)
+option(USE_BLAS "Do you want to use the BLAS external libs?" ON)
 if(USE_BLAS)
   enable_language(Fortran)
   include(FortranCInterface)
-  find_package(BLAS)
+  find_package(BLAS ${BLAS_VERSION} REQUIRED)
   if(BLAS_FOUND)
     set(HAVE_BLAS TRUE)
   endif()
-endif(USE_BLAS)
+endif()
 
 if(NOT BUILT_BY_ACRO)
   option(USE_MPI "Should OPTPP use MPI?" OFF)
@@ -83,12 +84,6 @@ INSTALL(FILES ${CMAKE_BINARY_DIR}/config/OPT++_config.h
 )
 
 SET(CMAKE_DEBUG_POSTFIX "d")
-IF( WIN32 )
-   # What is the equivalent for WIN32?
-ELSE ( WIN32 )
-   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-ENDIF ( WIN32 )
 
 add_subdirectory(newmat11)
 add_subdirectory(src)
@@ -139,3 +134,13 @@ SET(OPT_INCLUDES
 INSTALL(FILES ${OPT_INCLUDES}
 	DESTINATION include/optpp
 )
+
+install(EXPORT optpp-config
+	DESTINATION ${PACKAGE_CONFIG_DIR})
+include(CMakePackageConfigHelpers)
+WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/optpp-config-version.cmake
+    COMPATIBILITY AnyNewerVersion)
+install(FILES 
+    ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-version.cmake
+    #${CMAKE_CURRENT_BINARY_DIR}/hypre-config-dependencies.cmake
+    DESTINATION ${PACKAGE_CONFIG_DIR})

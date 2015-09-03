@@ -9,7 +9,9 @@ set_target_properties(newmat PROPERTIES
   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
   
 INSTALL(TARGETS newmat
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include/optpp
 )
 
 # install the header files

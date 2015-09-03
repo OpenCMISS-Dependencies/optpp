@@ -25,5 +25,7 @@ endif()
 add_library(utils ${libutils_srcs})
 
 INSTALL(TARGETS utils
-	ARCHIVE DESTINATION lib/optpp
+    EXPORT optpp-config
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include/optpp
 )
