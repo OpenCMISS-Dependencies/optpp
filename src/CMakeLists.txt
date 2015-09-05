@@ -16,8 +16,8 @@ set_target_properties(optpp PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib
   ARCHIVE_OUTPUT_DIRECTORY ${optpp_BINARY_DIR}/lib)
   
-INSTALL(TARGETS optpp
+install(TARGETS optpp
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include/optpp
 )

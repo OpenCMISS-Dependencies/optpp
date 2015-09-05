@@ -7,6 +7,6 @@ target_link_libraries(constraints utils)
 
 INSTALL(TARGETS constraints
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include
 )

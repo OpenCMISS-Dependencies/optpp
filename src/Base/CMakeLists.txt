@@ -12,6 +12,6 @@ target_link_libraries(base ${base_libs})
 
 INSTALL(TARGETS base
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include
 )

@@ -19,6 +19,6 @@ target_link_libraries(pds ${pds_libs})
 
 INSTALL(TARGETS pds
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include/optpp
 )

@@ -26,6 +26,6 @@ add_library(utils ${libutils_srcs})
 
 INSTALL(TARGETS utils
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include/optpp
 )

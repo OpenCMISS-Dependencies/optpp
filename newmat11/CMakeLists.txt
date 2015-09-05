@@ -10,7 +10,7 @@ set_target_properties(newmat PROPERTIES
   
 INSTALL(TARGETS newmat
     EXPORT optpp-config
-	ARCHIVE DESTINATION lib
+	DESTINATION lib
 	INCLUDES DESTINATION include/optpp
 )
 
