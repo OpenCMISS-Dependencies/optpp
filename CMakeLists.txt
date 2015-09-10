@@ -140,7 +140,13 @@ install(EXPORT optpp-config
 include(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/optpp-config-version.cmake
     COMPATIBILITY AnyNewerVersion)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake 
+    "include(CMakeFindDependencyMacro)\r\n"
+	"set(${PROJECT_NAME}_IMPORT_PREFIX \${_IMPORT_PREFIX})\r\n"
+)
+file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "find_dependency(BLAS)\r\n")
+file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "set(_IMPORT_PREFIX \${${PROJECT_NAME}_IMPORT_PREFIX})")    
 install(FILES 
     ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-version.cmake
-    #${CMAKE_CURRENT_BINARY_DIR}/hypre-config-dependencies.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake
     DESTINATION ${PACKAGE_CONFIG_DIR})
