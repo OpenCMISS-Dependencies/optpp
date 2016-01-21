@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(optpp VERSION 681 LANGUAGES C CXX)
+enable_language(Fortran OPTIONAL)
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 option(USE_NPSOL "Do you want to use the npsol library?" OFF)
@@ -12,8 +13,11 @@ include_directories(
   ${optpp_SOURCE_DIR}/newmat11)
 
 option(USE_BLAS "Do you want to use the BLAS external libs?" ON)
+if (USE_BLAS AND NOT CMAKE_Fortran_COMPILER)
+    set(USE_BLAS OFF)
+    message(WARNING "USE_BLAS enabled but no Fortran compiler availabe. Disabling.")
+endif() 
 if(USE_BLAS)
-  enable_language(Fortran)
   include(FortranCInterface)
   find_package(BLAS ${BLAS_VERSION} REQUIRED)
   if(BLAS_FOUND)
@@ -144,7 +148,9 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake
     "include(CMakeFindDependencyMacro)\r\n"
 	"set(${PROJECT_NAME}_IMPORT_PREFIX \${_IMPORT_PREFIX})\r\n"
 )
-file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "find_dependency(BLAS)\r\n")
+if (USE_BLAS)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "find_dependency(BLAS)\r\n")
+endif()
 file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "set(_IMPORT_PREFIX \${${PROJECT_NAME}_IMPORT_PREFIX})")    
 install(FILES 
     ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-version.cmake
