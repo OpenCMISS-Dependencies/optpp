@@ -3,7 +3,7 @@ set(libutils_srcs
   OptppFatalError.C print.C timers.c
 )
 
-if(NOT BLAS_FOUND)
+if(NOT USE_EXTERNAL_BLAS OR NOT HAVE_BLAS)
   list(APPEND libutils_srcs linalg.c)
 endif()
 

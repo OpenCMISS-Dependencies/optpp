@@ -12,14 +12,10 @@ include_directories(
   ${optpp_SOURCE_DIR}/include
   ${optpp_SOURCE_DIR}/newmat11)
 
-option(USE_BLAS "Do you want to use the BLAS external libs?" ON)
-if (USE_BLAS AND NOT CMAKE_Fortran_COMPILER)
-    set(USE_BLAS OFF)
-    message(WARNING "USE_BLAS enabled but no Fortran compiler availabe. Disabling.")
-endif() 
-if(USE_BLAS)
+option(USE_EXTERNAL_BLAS "Allow to use external BLAS libs?" OFF)
+if(USE_EXTERNAL_BLAS)
   include(FortranCInterface)
-  find_package(BLAS ${BLAS_VERSION} REQUIRED)
+  find_package(BLAS ${BLAS_VERSION} QUIET)
   if(BLAS_FOUND)
     set(HAVE_BLAS TRUE)
   endif()
@@ -148,7 +144,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake
     "include(CMakeFindDependencyMacro)\r\n"
 	"set(${PROJECT_NAME}_IMPORT_PREFIX \${_IMPORT_PREFIX})\r\n"
 )
-if (USE_BLAS)
+if (USE_EXTERNAL_BLAS AND HAVE_BLAS)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "find_dependency(BLAS)\r\n")
 endif()
 file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "set(_IMPORT_PREFIX \${${PROJECT_NAME}_IMPORT_PREFIX})")    
