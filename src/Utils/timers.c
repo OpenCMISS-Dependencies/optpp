@@ -79,6 +79,8 @@ double get_cpu_time()
 /* Modified from http://mywebpage.netscape.com/yongweiwu/timeval.h.txt */
 #if !defined(HAVE_GETTIMEOFDAY) && (defined(_MSC_VER) || defined(__MINGW32__))
 
+#define gettimeofday optpp_gettimeofday
+
 int gettimeofday (struct timeval *tv, void* tz)
 {
   FILETIME ft;
