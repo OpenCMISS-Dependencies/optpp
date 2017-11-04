@@ -145,7 +145,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake
 	"set(${PROJECT_NAME}_IMPORT_PREFIX \${_IMPORT_PREFIX})\r\n"
 )
 if (USE_EXTERNAL_BLAS AND HAVE_BLAS)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "find_dependency(BLAS)\r\n")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "set(BLAS_FIND_SYSTEM ${BLAS_FIND_SYSTEM})\r\nfind_dependency(BLAS)\r\n")
 endif()
 file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/optpp-config-dependencies.cmake "set(_IMPORT_PREFIX \${${PROJECT_NAME}_IMPORT_PREFIX})")    
 install(FILES 
